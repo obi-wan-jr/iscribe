@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audibible - Bible Audio Transcription</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Audibible</h1>
+            <p>Convert Bible chapters to high-quality audio using Fish.Audio TTS</p>
+        </header>
+
+        <main>
+            <!-- Configuration Section -->
+            <section class="config-section">
+                <h2>⚙️ Configuration</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="fishApiKey">Fish.Audio API Key:</label>
+                        <input type="password" id="fishApiKey" placeholder="Enter your Fish.Audio API key">
+                        <small>Your API key is stored locally and never sent to our servers</small>
+                    </div>
+                    <div class="config-item">
+                        <label for="voiceModelId">Voice Model ID:</label>
+                        <input type="text" id="voiceModelId" placeholder="Enter your custom voice model ID">
+                        <small>The ID of your Fish.Audio custom voice model</small>
+                    </div>
+                </div>
+                <button id="saveConfig" class="btn btn-secondary">💾 Save Configuration</button>
+                <div id="configStatus" class="status-message"></div>
+                <div id="envConfigStatus" class="status-message" style="display: none;">
+                    <strong>✅ Credentials loaded from environment file (.env)</strong>
+                    <br><small>You can still override them using the form above if needed.</small>
+                </div>
+            </section>
+
+            <!-- Transcription Section -->
+            <section class="transcription-section">
+                <h2>📖 Bible Transcription</h2>
+                <div class="transcription-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bibleBook">Bible Book:</label>
+                            <select id="bibleBook">
+                                <option value="">Select a book...</option>
+                                <!-- Old Testament -->
+                                <optgroup label="Old Testament">
+                                    <option value="Genesis">Genesis</option>
+                                    <option value="Exodus">Exodus</option>
+                                    <option value="Leviticus">Leviticus</option>
+                                    <option value="Numbers">Numbers</option>
+                                    <option value="Deuteronomy">Deuteronomy</option>
+                                    <option value="Joshua">Joshua</option>
+                                    <option value="Judges">Judges</option>
+                                    <option value="Ruth">Ruth</option>
+                                    <option value="1 Samuel">1 Samuel</option>
+                                    <option value="2 Samuel">2 Samuel</option>
+                                    <option value="1 Kings">1 Kings</option>
+                                    <option value="2 Kings">2 Kings</option>
+                                    <option value="1 Chronicles">1 Chronicles</option>
+                                    <option value="2 Chronicles">2 Chronicles</option>
+                                    <option value="Ezra">Ezra</option>
+                                    <option value="Nehemiah">Nehemiah</option>
+                                    <option value="Esther">Esther</option>
+                                    <option value="Job">Job</option>
+                                    <option value="Psalms">Psalms</option>
+                                    <option value="Proverbs">Proverbs</option>
+                                    <option value="Ecclesiastes">Ecclesiastes</option>
+                                    <option value="Song of Songs">Song of Songs</option>
+                                    <option value="Isaiah">Isaiah</option>
+                                    <option value="Jeremiah">Jeremiah</option>
+                                    <option value="Lamentations">Lamentations</option>
+                                    <option value="Ezekiel">Ezekiel</option>
+                                    <option value="Daniel">Daniel</option>
+                                    <option value="Hosea">Hosea</option>
+                                    <option value="Joel">Joel</option>
+                                    <option value="Amos">Amos</option>
+                                    <option value="Obadiah">Obadiah</option>
+                                    <option value="Jonah">Jonah</option>
+                                    <option value="Micah">Micah</option>
+                                    <option value="Nahum">Nahum</option>
+                                    <option value="Habakkuk">Habakkuk</option>
+                                    <option value="Zephaniah">Zephaniah</option>
+                                    <option value="Haggai">Haggai</option>
+                                    <option value="Zechariah">Zechariah</option>
+                                    <option value="Malachi">Malachi</option>
+                                </optgroup>
+                                <!-- New Testament -->
+                                <optgroup label="New Testament">
+                                    <option value="Matthew">Matthew</option>
+                                    <option value="Mark">Mark</option>
+                                    <option value="Luke">Luke</option>
+                                    <option value="John">John</option>
+                                    <option value="Acts">Acts</option>
+                                    <option value="Romans">Romans</option>
+                                    <option value="1 Corinthians">1 Corinthians</option>
+                                    <option value="2 Corinthians">2 Corinthians</option>
+                                    <option value="Galatians">Galatians</option>
+                                    <option value="Ephesians">Ephesians</option>
+                                    <option value="Philippians">Philippians</option>
+                                    <option value="Colossians">Colossians</option>
+                                    <option value="1 Thessalonians">1 Thessalonians</option>
+                                    <option value="2 Thessalonians">2 Thessalonians</option>
+                                    <option value="1 Timothy">1 Timothy</option>
+                                    <option value="2 Timothy">2 Timothy</option>
+                                    <option value="Titus">Titus</option>
+                                    <option value="Philemon">Philemon</option>
+                                    <option value="Hebrews">Hebrews</option>
+                                    <option value="James">James</option>
+                                    <option value="1 Peter">1 Peter</option>
+                                    <option value="2 Peter">2 Peter</option>
+                                    <option value="1 John">1 John</option>
+                                    <option value="2 John">2 John</option>
+                                    <option value="3 John">3 John</option>
+                                    <option value="Jude">Jude</option>
+                                    <option value="Revelation">Revelation</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="transcribeFullBook">
+                                <span class="checkmark"></span>
+                                Transcribe entire book (all chapters)
+                            </label>
+                            <small>Generate individual files for each chapter in the selected book</small>
+                        </div>
+
+                        <div class="form-group" id="chapterInputGroup">
+                            <label for="chapter">Chapter:</label>
+                            <div class="chapter-input-container">
+                                <input type="number" id="chapter" min="1" placeholder="1">
+                                <div class="chapter-validation" id="chapterValidation">
+                                    <span class="validation-icon"></span>
+                                    <span class="validation-message"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="version">Bible Version:</label>
+                            <select id="version">
+                                <option value="NIV">NIV (New International Version)</option>
+                                <option value="ESV">ESV (English Standard Version)</option>
+                                <option value="KJV">KJV (King James Version)</option>
+                                <option value="NASB">NASB (New American Standard Bible)</option>
+                                <option value="NLT">NLT (New Living Translation)</option>
+                                <option value="CSB">CSB (Christian Standard Bible)</option>
+                                <option value="WEB">WEB (World English Bible)</option>
+                                <option value="NKJV">NKJV (New King James Version)</option>
+                                <option value="MSG">MSG (The Message)</option>
+                                <option value="AMP">AMP (Amplified Bible)</option>
+                                <option value="CEV">CEV (Contemporary English Version)</option>
+                                <option value="HCSB">HCSB (Holman Christian Standard Bible)</option>
+                                <option value="NASB1995">NASB1995 (New American Standard Bible 1995)</option>
+                                <option value="NET">NET (New English Translation)</option>
+                                <option value="RSV">RSV (Revised Standard Version)</option>
+                                <option value="ASV">ASV (American Standard Version)</option>
+                                <option value="YLT">YLT (Young's Literal Translation)</option>
+                                <option value="DARBY">DARBY (Darby Translation)</option>
+                                <option value="GNT">GNT (Good News Translation)</option>
+                                <option value="NCV">NCV (New Century Version)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="maxSentences">Sentences per Audio Part:</label>
+                            <input type="number" id="maxSentences" min="1" max="100" value="20" placeholder="20">
+                            <small>Number of sentences per audio file. The entire chapter will be transcribed and split into multiple parts, then combined into one final MP3 with book/chapter introduction.</small>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="excludeVerseNumbers" checked disabled>
+                                <span class="checkmark"></span>
+                                Exclude verse numbers (always enabled)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Video Creation Section -->
+                    <div class="video-section">
+                        <h3>🎬 Video Creation (Optional)</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="createVideo">
+                                    <span class="checkmark"></span>
+                                    Create MP4 video with background image
+                                </label>
+                                <small>Generate a video file using a static background image with the chapter audio</small>
+                            </div>
+                        </div>
+                        
+                        <div id="imageUploadSection" class="image-upload-section" style="display: none;">
+                            <div class="form-group">
+                                <label for="backgroundImage">Background Image:</label>
+                                <input type="file" id="backgroundImage" accept="image/*" class="file-input">
+                                <small>Upload an image to use as the video background (JPEG, PNG, WebP supported, max 10MB)</small>
+                            </div>
+                            <div id="imagePreview" class="image-preview" style="display: none;">
+                                <img id="previewImg" src="" alt="Background Preview">
+                                <div class="image-info">
+                                    <p id="imageInfo"></p>
+                                    <button type="button" id="removeImage" class="btn btn-secondary btn-small">❌ Remove Image</button>
+                                </div>
+                            </div>
+                            <div id="uploadProgress" class="upload-progress" style="display: none;">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                </div>
+                                <p class="upload-status">Uploading image...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="startTranscription" class="btn btn-primary">🎬 Start Transcription</button>
+                </div>
+            </section>
+
+            <!-- Queue Status Section -->
+            <section class="queue-section" style="display: none;">
+                <h2>📋 Job Queue</h2>
+                <div class="queue-status">
+                    <div class="queue-summary">
+                        <span class="queue-count">0 jobs in queue</span>
+                        <button id="refreshQueue" class="btn btn-secondary btn-small">🔄 Refresh</button>
+                    </div>
+                    <div class="current-job" style="display: none;">
+                        <h3>🔄 Currently Processing</h3>
+                        <div class="job-card current">
+                            <div class="job-info">
+                                <span class="job-title">Genesis 1 (NIV)</span>
+                                <span class="job-status">Processing...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="queued-jobs" style="display: none;">
+                        <h3>⏳ Queued Jobs</h3>
+                        <div class="jobs-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Progress Section -->
+            <section class="progress-section" style="display: none;">
+                <h2>📊 Current Job Progress</h2>
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <div class="progress-text">Ready to start...</div>
+                        <div class="progress-percentage">0%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-details"></div>
+                </div>
+
+                <div class="progress-log"></div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" style="display: none;">
+                <h2>✅ Results</h2>
+                <div class="results-container">
+                    <div class="result-item">
+                        <p>Audio file generated successfully!</p>
+                        <button id="downloadBtn" class="btn btn-success">📥 Download MP3</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- File Manager Section -->
+            <section class="file-manager-section">
+                <h2>📁 Media Files</h2>
+                <div class="file-manager-controls">
+                    <button id="refreshFiles" class="btn btn-secondary">🔄 Refresh</button>
+                    <button id="clearAll" class="btn btn-danger" style="margin-left: 10px;">🗑️ Clear All</button>
+                </div>
+                <div class="files-container">
+                    <div class="loading-files" style="text-align: center; padding: 2rem;">
+                        <p>Loading files...</p>
+                    </div>
+                </div>
+                <div class="file-stats">
+                    <p><strong>Total Files:</strong> <span id="totalFiles">0</span></p>
+                    <p><strong>Total Size:</strong> <span id="totalSize">0 Bytes</span></p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>🔊 Creating seamless Bible audio with Fish.Audio TTS</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
