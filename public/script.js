@@ -107,20 +107,33 @@ class AudibibleApp {
             
             console.log('Fish.Audio credentials loaded from environment');
             
-            // Show the environment status
+            // Show the environment status and allow voice model changes
             envStatusDiv.innerHTML = `
-                <strong>✅ Credentials loaded from environment file (.env)</strong><br>
+                <strong>✅ API Key loaded from environment file (.env)</strong><br>
                 <small>API Key: Configured | Voice Model: ${config.voiceModelId}</small><br>
-                <small>You can still override them using the form above if needed.</small>
+                <small>You can change the Voice Model ID using the form above if needed.</small>
                 <button onclick="audibibleApp.showConfigForm()" class="btn btn-secondary" style="margin-top: 10px; font-size: 0.85rem;">
-                    ⚙️ Override Settings
+                    ⚙️ Change Voice Model
                 </button>
             `;
+            
+            // Always show the config form, but make API key readonly
+            configForm.style.display = 'grid';
+            saveButton.style.display = 'inline-block';
+            fishApiKeyInput.readOnly = true;
+            fishApiKeyInput.value = '••••••••••••••••'; // Show obfuscated value
+            voiceModelIdInput.value = config.voiceModelId || '';
+            voiceModelIdInput.readOnly = false;
         } else {
-            // Show configuration form
+            // No environment config - still make API key readonly
             configForm.style.display = 'grid';
             saveButton.style.display = 'inline-block';
             envStatusDiv.style.display = 'none';
+            
+            // Make API key readonly even when not configured
+            fishApiKeyInput.readOnly = true;
+            fishApiKeyInput.value = '';
+            voiceModelIdInput.readOnly = false;
             
             // Check what's missing
             if (!config.apiKeyConfigured) {
@@ -208,21 +221,20 @@ class AudibibleApp {
         }
     }
 
-    // Save Fish.Audio configuration
+    // Save Voice Model ID configuration (API key is set via .env file only)
     saveConfiguration() {
-        const apiKey = document.getElementById('fishApiKey').value.trim();
         const voiceModelId = document.getElementById('voiceModelId').value.trim();
 
-        if (!apiKey || !voiceModelId) {
-            this.showConfigStatus('error', 'Please enter both API key and voice model ID');
+        if (!voiceModelId) {
+            this.showConfigStatus('error', 'Please enter a voice model ID');
             return;
         }
 
-        // Store in localStorage
-        localStorage.setItem('fishApiKey', apiKey);
+        // Store only voice model ID in localStorage
         localStorage.setItem('voiceModelId', voiceModelId);
 
-        this.showConfigStatus('success', 'Configuration saved successfully!');
+        this.showConfigStatus('success', 'Voice Model ID saved successfully!');
+        console.log('Voice Model ID updated:', voiceModelId);
     }
 
     // Start transcription process
@@ -240,16 +252,14 @@ class AudibibleApp {
         this.clearProgressLog();
 
         try {
-            // Add Fish.Audio credentials to config (only if not already configured on server)
-            const localApiKey = localStorage.getItem('fishApiKey');
+            // Add voice model ID from localStorage if available (API key comes from .env only)
             const localVoiceModelId = localStorage.getItem('voiceModelId');
             
-            // Only include credentials in request if they exist locally (for override)
-            if (localApiKey && localVoiceModelId) {
-                config.fishApiKey = localApiKey;
+            // Include voice model ID if exists locally (for override/customization)
+            if (localVoiceModelId) {
                 config.voiceModelId = localVoiceModelId;
             }
-            // If no local credentials, the server will use environment variables
+            // API key will always come from server environment variables
 
             this.addLogEntry('info', 'Starting Bible chapter transcription...');
             this.updateProgress(5, 'Initializing transcription job...');
@@ -473,7 +483,8 @@ class AudibibleApp {
             const jobStatus = jobCard.querySelector('.job-status');
             
             const job = queueData.currentJob;
-            jobTitle.textContent = `${job.params.book} ${job.params.chapter} (${job.params.version})`;
+            const chapterText = job.params.transcribeFullBook ? 'Full Book' : job.params.chapter;
+            jobTitle.textContent = `${job.params.book} ${chapterText} (${job.params.version})`;
             
             // Initialize with basic status - progress updates will override this
             jobStatus.innerHTML = `
@@ -515,7 +526,7 @@ class AudibibleApp {
         jobCard.className = `job-card ${isQueued ? 'queued' : 'current'}`;
         jobCard.innerHTML = `
             <div class="job-info">
-                <span class="job-title">${job.params.book} ${job.params.chapter} (${job.params.version})</span>
+                <span class="job-title">${job.params.book} ${job.params.transcribeFullBook ? 'Full Book' : job.params.chapter} (${job.params.version})</span>
                 <span class="job-status">
                     ${isQueued ? `Position ${job.position} in queue` : job.status}
                     ${job.params.createVideo ? ' • Video' : ' • Audio only'}
@@ -650,9 +661,9 @@ class AudibibleApp {
             }
         }
 
-        // Check if credentials are configured either locally or on server
-        const hasLocalCredentials = localStorage.getItem('fishApiKey') && localStorage.getItem('voiceModelId');
-        // We'll let the server validate if credentials are available via environment
+        // Check if voice model is configured locally (API key is handled server-side)
+        const hasLocalVoiceModel = localStorage.getItem('voiceModelId');
+        // We'll let the server validate if API key is available via environment
 
         return {
             book,

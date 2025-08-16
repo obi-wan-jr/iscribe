@@ -20,20 +20,20 @@
                 <div class="config-grid">
                     <div class="config-item">
                         <label for="fishApiKey">Fish.Audio API Key:</label>
-                        <input type="password" id="fishApiKey" placeholder="Enter your Fish.Audio API key">
-                        <small>Your API key is stored locally and never sent to our servers</small>
+                        <input type="password" id="fishApiKey" placeholder="Set in .env configuration file" readonly>
+                        <small>⚠️ API key can only be changed in the .env configuration file for security</small>
                     </div>
                     <div class="config-item">
                         <label for="voiceModelId">Voice Model ID:</label>
                         <input type="text" id="voiceModelId" placeholder="Enter your custom voice model ID">
-                        <small>The ID of your Fish.Audio custom voice model</small>
+                        <small>The ID of your Fish.Audio custom voice model (can be changed here)</small>
                     </div>
                 </div>
-                <button id="saveConfig" class="btn btn-secondary">💾 Save Configuration</button>
+                <button id="saveConfig" class="btn btn-secondary">💾 Save Voice Model ID</button>
                 <div id="configStatus" class="status-message"></div>
                 <div id="envConfigStatus" class="status-message" style="display: none;">
-                    <strong>✅ Credentials loaded from environment file (.env)</strong>
-                    <br><small>You can still override them using the form above if needed.</small>
+                    <strong>✅ API Key loaded from environment file (.env)</strong>
+                    <br><small>You can still change the Voice Model ID using the form above if needed.</small>
                 </div>
             </section>
 

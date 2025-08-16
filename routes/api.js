@@ -442,9 +442,9 @@ router.post('/transcribe', async (req, res) => {
         }
 
         // Generate unique job ID for progress tracking
-        const jobId = `${book}_${transcribeFullBook ? 'FullBook' : chapter}_${Date.now()}`;
+        const jobId = `${book}_${transcribeFullBook ? 'FullBook' : chapter || 'Chapter'}_${Date.now()}`;
         
-        console.log(`Queueing transcription job: ${book} ${transcribeFullBook ? 'Full Book' : chapter} (${version}) [Job: ${jobId}]`);
+        console.log(`Queueing transcription job: ${book} ${transcribeFullBook ? 'Full Book' : (chapter || 'Unknown Chapter')} (${version}) [Job: ${jobId}]`);
 
         // Add job to queue
         const queueResult = jobQueueService.addJob({
@@ -484,8 +484,32 @@ router.post('/transcribe', async (req, res) => {
     }
 });
 
+// Helper function to adjust progress for full book context
+function adjustProgressForContext(progress, context) {
+    if (!context || !context.isFullBookChapter) {
+        return progress; // No adjustment needed for single chapter
+    }
+    
+    // For full book: each chapter gets 1/totalChapters of the total progress
+    const chapterWeight = 100 / context.totalChapters;
+    const chapterProgress = (progress / 100) * chapterWeight;
+    const baseProgress = (context.currentChapter - 1) * chapterWeight;
+    
+    return Math.round(baseProgress + chapterProgress);
+}
+
+// Helper function to send progress with context adjustment
+function sendContextualProgress(jobId, data, context) {
+    if (context && context.isFullBookChapter) {
+        // Adjust progress for full book context
+        data.progress = adjustProgressForContext(data.progress, context);
+        data.message = `Chapter ${context.currentChapter}/${context.totalChapters}: ${data.message}`;
+    }
+    sendContextualProgress(jobId, data);
+}
+
 // Background transcription processing function
-async function processTranscriptionInBackground(jobId, params) {
+async function processTranscriptionInBackground(jobId, params, context = null) {
     try {
         const { book, chapter, version, maxSentences, createVideo, backgroundImagePath, fishApiKey, voiceModelId, transcribeFullBook } = params;
 
@@ -527,11 +551,14 @@ async function processTranscriptionInBackground(jobId, params) {
                     transcribeFullBook: false // Process as individual chapter
                 };
                 
-                // Generate unique job ID for this chapter
-                const chapterJobId = `${jobId}_chapter_${chapterNum}`;
-                
                 try {
-                    await processTranscriptionInBackground(chapterJobId, chapterParams);
+                    // Process this chapter but send progress updates to the main job ID
+                    await processTranscriptionInBackground(jobId, chapterParams, {
+                        isFullBookChapter: true,
+                        currentChapter: chapterNum,
+                        totalChapters: totalChapters,
+                        baseProgress: chapterProgress
+                    });
                 } catch (error) {
                     console.error(`Failed to process ${book} chapter ${chapterNum}:`, error);
                     
@@ -559,24 +586,24 @@ async function processTranscriptionInBackground(jobId, params) {
         }
 
         // Step 1: Fetch complete Bible chapter text (single chapter mode)
-        sendProgress(jobId, {
+        sendContextualProgress(jobId, {
             type: 'progress',
             step: 'fetch_text',
             progress: 5,
             message: `Fetching ${book} ${chapter} (${version}) from BibleGateway...`,
             details: 'Downloading chapter text and cleaning verse numbers'
-        });
+        }, context);
 
         const textResult = await bibleService.fetchChapter(book, chapter, version);
 
         if (!textResult.success) {
-            sendProgress(jobId, {
+            sendContextualProgress(jobId, {
                 type: 'error',
                 step: 'fetch_text',
                 progress: 5,
                 message: 'Failed to fetch Bible text',
                 error: textResult.error
-            });
+            }, context);
             return;
         }
 
@@ -584,13 +611,13 @@ async function processTranscriptionInBackground(jobId, params) {
         console.log(`Fetched complete chapter: ${bibleText.length} characters, ${textResult.metadata.sentenceCount} sentences`);
 
         // Step 2: Chunk the text based on sentence limits for multiple files
-        sendProgress(jobId, {
+        sendContextualProgress(jobId, {
             type: 'progress',
             step: 'chunk_text',
             progress: 10,
             message: 'Processing chapter text...',
             details: `Processing ${textResult.metadata.sentenceCount} sentences, ${bibleText.length} characters`
-        });
+        }, context);
 
         const maxSentencesValue = maxSentences ? parseInt(maxSentences) : 5;
         console.log(`Chunking text with maxSentences: ${maxSentencesValue} (from job params: ${maxSentences})`);
@@ -606,13 +633,13 @@ async function processTranscriptionInBackground(jobId, params) {
         await fs.ensureDir(tempDir);
 
         // Step 4: Generate chapter introduction audio
-        sendProgress(jobId, {
+        sendContextualProgress(jobId, {
             type: 'progress',
             step: 'generate_intro',
             progress: 15,
             message: `Creating chapter introduction...`,
             details: `Generating "${book}, Chapter ${chapter}" with Fish.Audio`
-        });
+        }, context);
 
         console.log(`Generating chapter introduction: "${book}, Chapter ${chapter}"`);
         const introResult = await fishAudioService.generateChapterIntroduction(
@@ -625,26 +652,26 @@ async function processTranscriptionInBackground(jobId, params) {
 
         if (!introResult.success) {
             await fs.remove(tempDir);
-            sendProgress(jobId, {
+            sendContextualProgress(jobId, {
                 type: 'error',
                 step: 'generate_intro',
                 progress: 15,
                 message: 'Chapter introduction generation failed',
                 error: introResult.error
-            });
+            }, context);
             return;
         }
 
         console.log('Chapter introduction generated successfully');
 
         // Step 5: Generate audio for each text chunk
-        sendProgress(jobId, {
+        sendContextualProgress(jobId, {
             type: 'progress',
             step: 'generate_chunks',
             progress: 20,
             message: `Generating audio for ${textChunks.length} text chunks...`,
             details: 'Creating speech audio with Fish.Audio TTS'
-        });
+        }, context);
 
         const chunkResult = await fishAudioService.generateSpeechForChunks(
             textChunks,
@@ -656,33 +683,33 @@ async function processTranscriptionInBackground(jobId, params) {
                 // Clamp progress to 0-100 range and map to 20-70% range
                 const clampedProgress = Math.min(100, Math.max(0, progress));
                 const adjustedProgress = 20 + (clampedProgress * 0.5); // 20% to 70%
-                sendProgress(jobId, {
+                sendContextualProgress(jobId, {
                     type: 'progress',
                     step: 'generate_chunks',
                     progress: Math.round(adjustedProgress),
                     message: message,
                     details: `Processing chunk audio with Fish.Audio`
-                });
+                }, context);
             }
         );
 
         if (!chunkResult.success) {
             // Clean up temp directory on failure
             await fs.remove(tempDir);
-            sendProgress(jobId, {
+            sendContextualProgress(jobId, {
                 type: 'error',
                 step: 'generate_chunks',
                 progress: 20,
                 message: 'Content audio generation failed',
                 error: chunkResult.error
-            });
+            }, context);
             return;
         }
 
         console.log(`Generated ${chunkResult.audioPaths.length} content audio chunks`);
 
         // Step 6: Merge introduction + all chunks into final audio file
-        sendProgress(jobId, {
+        sendContextualProgress(jobId, {
             type: 'progress',
             step: 'merge_audio',
             progress: 70,
@@ -703,7 +730,7 @@ async function processTranscriptionInBackground(jobId, params) {
                 const adjustedProgress = 70 + (clampedProgress * 0.15); // 70% to 85%
                 const finalProgress = Math.min(85, Math.max(70, adjustedProgress)); // Double-clamp to 70-85 range
                 
-                sendProgress(jobId, {
+                sendContextualProgress(jobId, {
                     type: 'progress',
                     step: 'merge_audio',
                     progress: Math.round(finalProgress),
@@ -716,7 +743,7 @@ async function processTranscriptionInBackground(jobId, params) {
         if (!audioResult.success) {
             // Clean up temp directory on failure
             await fs.remove(tempDir);
-            sendProgress(jobId, {
+            sendContextualProgress(jobId, {
                 type: 'error',
                 step: 'merge_audio',
                 progress: 70,
@@ -729,7 +756,7 @@ async function processTranscriptionInBackground(jobId, params) {
         // Step 7: Create video if requested and image provided
         let videoResult = null;
         if (createVideo && backgroundImagePath) {
-            sendProgress(jobId, {
+            sendContextualProgress(jobId, {
                 type: 'progress',
                 step: 'create_video',
                 progress: 85,
@@ -742,7 +769,7 @@ async function processTranscriptionInBackground(jobId, params) {
             // Validate image exists
             if (!(await fs.pathExists(backgroundImagePath))) {
                 console.warn('Background image not found, skipping video creation');
-                sendProgress(jobId, {
+                sendContextualProgress(jobId, {
                     type: 'warning',
                     step: 'create_video',
                     progress: 85,
@@ -763,7 +790,7 @@ async function processTranscriptionInBackground(jobId, params) {
                         const adjustedProgress = 85 + (clampedProgress * 0.1); // 85% to 95%
                         const finalProgress = Math.min(95, Math.max(85, adjustedProgress)); // Double-clamp to 85-95 range
                         
-                        sendProgress(jobId, {
+                        sendContextualProgress(jobId, {
                             type: 'progress',
                             step: 'create_video',
                             progress: Math.round(finalProgress),
@@ -807,7 +834,7 @@ async function processTranscriptionInBackground(jobId, params) {
         }
 
         // Final cleanup and completion
-        sendProgress(jobId, {
+        sendContextualProgress(jobId, {
             type: 'progress',
             step: 'cleanup',
             progress: 95,
@@ -850,7 +877,7 @@ async function processTranscriptionInBackground(jobId, params) {
         }
 
         // Send final completion message
-        sendProgress(jobId, {
+        sendContextualProgress(jobId, {
             type: 'completed',
             step: 'completed',
             progress: 100,
@@ -869,7 +896,7 @@ async function processTranscriptionInBackground(jobId, params) {
 
     } catch (error) {
         console.error('Background transcription error:', error);
-        sendProgress(jobId, {
+        sendContextualProgress(jobId, {
             type: 'error',
             step: 'error',
             progress: 0,
