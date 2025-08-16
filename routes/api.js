@@ -387,7 +387,7 @@ router.post('/transcribe', async (req, res) => {
         const {
             book,
             chapter,
-            version = 'NIV',
+            version = 'WEB',
             maxSentences,
             fishApiKey: providedApiKey,
             voiceModelId: providedVoiceModelId,
@@ -592,7 +592,7 @@ async function processTranscriptionInBackground(jobId, params) {
             details: `Processing ${textResult.metadata.sentenceCount} sentences, ${bibleText.length} characters`
         });
 
-        const maxSentencesValue = maxSentences ? parseInt(maxSentences) : null;
+        const maxSentencesValue = maxSentences ? parseInt(maxSentences) : 5;
         console.log(`Chunking text with maxSentences: ${maxSentencesValue} (from job params: ${maxSentences})`);
         
         const textChunks = fishAudioService.chunkText(

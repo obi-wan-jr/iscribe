@@ -658,7 +658,7 @@ class AudibibleApp {
             book,
             chapter: transcribeFullBook ? null : parseInt(chapter),
             version,
-            maxSentences: maxSentences ? parseInt(maxSentences) : null,
+            maxSentences: maxSentences ? parseInt(maxSentences) : 5,
             excludeVerseNumbers: true, // Always true per requirements
             createVideo: document.getElementById('createVideo').checked,
             backgroundImagePath: this.uploadedImagePath,
