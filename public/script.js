@@ -57,6 +57,23 @@ class AudibibleApp {
         document.getElementById('createVideo').addEventListener('change', (e) => this.toggleVideoSection(e.target.checked));
         document.getElementById('backgroundImage').addEventListener('change', (e) => this.handleImageUpload(e));
         document.getElementById('removeImage').addEventListener('click', () => this.removeImage());
+
+        // Advanced TTS Override
+        document.getElementById('enableManualOverride').addEventListener('change', (e) => this.toggleManualOverride(e.target.checked));
+        document.getElementById('loadChapterTextBtn').addEventListener('click', () => this.loadChapterText());
+        document.getElementById('formatBold').addEventListener('click', () => this.formatText('bold'));
+        document.getElementById('formatItalic').addEventListener('click', () => this.formatText('italic'));
+        document.getElementById('formatUnderline').addEventListener('click', () => this.formatText('underline'));
+        document.getElementById('addPause').addEventListener('click', () => this.addPause());
+        document.getElementById('addLongPause').addEventListener('click', () => this.addLongPause());
+        document.getElementById('resetText').addEventListener('click', () => this.resetText());
+        document.getElementById('previewText').addEventListener('click', () => this.previewText());
+        document.getElementById('chapterContent').addEventListener('input', () => this.updateTextStats());
+        
+        // Text source selection
+        document.querySelectorAll('input[name="textSource"]').forEach(radio => {
+            radio.addEventListener('change', (e) => this.handleTextSourceChange(e.target.value));
+        });
     }
 
     // Check if server is running and load configuration
