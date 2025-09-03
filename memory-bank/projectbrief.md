@@ -1,7 +1,7 @@
-# Audibible Project Brief
+# tScribe Project Brief
 
 ## Project Overview
-Audibible is a web application that automates the conversion of Bible chapters into high-quality audio using Fish.Audio's custom voice TTS API. The application fetches passages from BibleGateway's web content, processes the text to remove verse numbers, and creates seamless audio files for enhanced listening experience.
+tScribe is a web application that automates the conversion of Bible chapters into high-quality audio using Fish.Audio's custom voice TTS API. The application fetches passages from BibleGateway's web content, processes the text to remove verse numbers, and creates seamless audio files for enhanced listening experience.
 
 ## Core Objectives
 - **Automated Bible Audio Creation**: Convert any Bible chapter to audio without manual intervention

@@ -54,7 +54,7 @@ const startServer = async () => {
   try {
     await ensureDirectories();
     app.listen(PORT, () => {
-      console.log(`🎵 Audibible server running on http://localhost:${PORT}`);
+      console.log(`🎵 tScribe server running on http://localhost:${PORT}`);
       console.log(`📁 Audio output directory: ${process.env.AUDIO_OUTPUT_DIR || './output'}`);
       console.log(`🔧 Fish.Audio configured: ${!!(process.env.FISH_AUDIO_API_KEY && process.env.FISH_AUDIO_VOICE_MODEL_ID)}`);
     });

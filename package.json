@@ -1,5 +1,5 @@
 {
-  "name": "audibible",
+  "name": "tScribe",
   "version": "1.0.0",
   "description": "Bible chapter audio transcription with Fish.Audio TTS and BibleGateway integration",
   "main": "server.js",

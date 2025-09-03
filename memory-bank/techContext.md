@@ -54,7 +54,7 @@ Express Server
 
 ### File Structure
 ```
-audibible/
+tScribe/
 ├── server.js (main entry point)
 ├── routes/ (API endpoints)
 ├── services/ (business logic)

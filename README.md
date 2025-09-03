@@ -1,4 +1,4 @@
-# 🎵 Audibible
+# 🎵 tScribe
 
 A web application that converts Bible chapters into high-quality audio using Fish.Audio's custom voice TTS API. Fetches passages from BibleGateway, processes text to remove verse numbers, and creates seamless audio files for enhanced listening experience.
 
@@ -43,7 +43,7 @@ sudo apt install ffmpeg
 1. **Clone or download this repository**
 ```bash
 git clone <repository-url>
-cd audibible
+cd tScribe
 ```
 
 2. **Install dependencies**
@@ -118,7 +118,7 @@ The application will be available at `http://localhost:3005`
 ## File Structure
 
 ```
-audibible/
+tScribe/
 ├── server.js              # Main Express server
 ├── package.json           # Dependencies and scripts
 ├── README.md              # This file
