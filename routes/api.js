@@ -775,7 +775,7 @@ async function processTranscriptionInBackground(jobId, params, context = null) {
                 videoResult = await videoService.createChapterVideo(
                     backgroundImagePath,
                     audioResult.finalAudioPath,
-                    book,
+                    fullBookName, // Use full book name instead of ID for video text overlay
                     chapter,
                     version,
                     (progress, message) => {
