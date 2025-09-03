@@ -89,7 +89,7 @@ router.get('/bible/validate/:book/:chapter', async (req, res) => {
         const { book, chapter } = req.params;
         const chapterNum = parseInt(chapter);
         
-        const isValid = bibleService.validateReference(book, chapterNum);
+        const isValid = await bibleService.validateReference(book, chapterNum);
         const books = await bibleService.getBibleBooks();
         const bookData = books.find(b => b.id === book.toUpperCase());
         
