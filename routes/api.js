@@ -422,15 +422,14 @@ router.post('/transcribe', async (req, res) => {
                 });
             }
         } else {
-            // Full book validation - just check if book exists
-            const bookNames = bibleService.getSupportedVersions().map(v => v.name); // This should be book names, but let's check if book is valid
-            // For now, we'll validate the book exists by checking if it has chapters
-            const chapterCount = bibleBookData.getChapterCount(book);
-            if (!chapterCount) {
-                return res.status(400).json({
-                    error: `Invalid Bible book: ${book}`
-                });
-            }
+                    // Full book validation - just check if book exists
+        const books = await bibleService.getBibleBooks();
+        const bookData = books.find(b => b.id === book.toUpperCase() || b.name === book);
+        if (!bookData) {
+            return res.status(400).json({
+                error: `Invalid Bible book: ${book}`
+            });
+        }
         }
 
         // Generate unique job ID for progress tracking
@@ -510,8 +509,9 @@ async function processTranscriptionInBackground(jobId, params, context = null) {
             console.log(`Processing full book transcription for ${book}`);
             
             // Get total chapters for this book
-            const totalChapters = bibleBookData.getChapterCount(book);
-            if (!totalChapters) {
+            const books = await bibleService.getBibleBooks();
+            const bookData = books.find(b => b.id === book.toUpperCase() || b.name === book);
+            if (!bookData) {
                 sendProgress(jobId, {
                     type: 'error',
                     step: 'validation',
@@ -521,6 +521,7 @@ async function processTranscriptionInBackground(jobId, params, context = null) {
                 });
                 return;
             }
+            const totalChapters = bookData.chapters;
             
             console.log(`${book} has ${totalChapters} chapters to process`);
             
