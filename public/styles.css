@@ -838,7 +838,10 @@ input[type="password"] {
     border: none;
     border-radius: 0;
     resize: vertical;
-    min-height: 200px;
+    min-height: 400px;
+    height: 400px;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
 .text-stats {
