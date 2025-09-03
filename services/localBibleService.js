@@ -143,6 +143,82 @@ class LocalBibleService {
     }
 
     /**
+     * Convert book ID to full book name
+     */
+    getBookName(bookId) {
+        const bookMapping = {
+            'GEN': 'Genesis',
+            'EXO': 'Exodus',
+            'LEV': 'Leviticus',
+            'NUM': 'Numbers',
+            'DEU': 'Deuteronomy',
+            'JOS': 'Joshua',
+            'JDG': 'Judges',
+            'RUT': 'Ruth',
+            '1SA': 'First Samuel',
+            '2SA': 'Second Samuel',
+            '1KI': 'First Kings',
+            '2KI': 'Second Kings',
+            '1CH': 'First Chronicles',
+            '2CH': 'Second Chronicles',
+            'EZR': 'Ezra',
+            'NEH': 'Nehemiah',
+            'EST': 'Esther',
+            'JOB': 'Job',
+            'PSA': 'Psalms',
+            'PRO': 'Proverbs',
+            'ECC': 'Ecclesiastes',
+            'SNG': 'Song of Solomon',
+            'ISA': 'Isaiah',
+            'JER': 'Jeremiah',
+            'LAM': 'Lamentations',
+            'EZK': 'Ezekiel',
+            'DAN': 'Daniel',
+            'HOS': 'Hosea',
+            'JOL': 'Joel',
+            'AMO': 'Amos',
+            'OBA': 'Obadiah',
+            'JON': 'Jonah',
+            'MIC': 'Micah',
+            'NAH': 'Nahum',
+            'HAB': 'Habakkuk',
+            'ZEP': 'Zephaniah',
+            'HAG': 'Haggai',
+            'ZEC': 'Zechariah',
+            'MAL': 'Malachi',
+            'MAT': 'Matthew',
+            'MRK': 'Mark',
+            'LUK': 'Luke',
+            'JHN': 'John',
+            'ACT': 'Acts',
+            'ROM': 'Romans',
+            '1CO': 'First Corinthians',
+            '2CO': 'Second Corinthians',
+            'GAL': 'Galatians',
+            'EPH': 'Ephesians',
+            'PHP': 'Philippians',
+            'COL': 'Colossians',
+            '1TH': 'First Thessalonians',
+            '2TH': 'Second Thessalonians',
+            '1TI': 'First Timothy',
+            '2TI': 'Second Timothy',
+            'TIT': 'Titus',
+            'PHM': 'Philemon',
+            'HEB': 'Hebrews',
+            'JAS': 'James',
+            '1PE': 'First Peter',
+            '2PE': 'Second Peter',
+            '1JN': 'First John',
+            '2JN': 'Second John',
+            '3JN': 'Third John',
+            'JUD': 'Jude',
+            'REV': 'Revelation'
+        };
+        
+        return bookMapping[bookId.toUpperCase()] || bookId;
+    }
+
+    /**
      * Search Bible text (not implemented - would require API support)
      */
     async searchBibleText(searchTerm, book = null, chapter = null) {

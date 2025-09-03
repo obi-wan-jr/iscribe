@@ -634,9 +634,11 @@ async function processTranscriptionInBackground(jobId, params, context = null) {
             details: `Generating "${book}, Chapter ${chapter}" with Fish.Audio`
         }, context);
 
-        console.log(`Generating chapter introduction: "${book}, Chapter ${chapter}"`);
+        // Get full book name for TTS introduction
+        const fullBookName = bibleService.getBookName(book);
+        console.log(`Generating chapter introduction: "${fullBookName}, Chapter ${chapter}"`);
         const introResult = await fishAudioService.generateChapterIntroduction(
-            book,
+            fullBookName,
             chapter,
             fishApiKey,
             voiceModelId,
