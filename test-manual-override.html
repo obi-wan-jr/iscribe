@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Override Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        input[type="checkbox"] { margin-right: 10px; }
+        #manualOverrideInterface { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Manual Override Functionality Test</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: Checkbox Toggle</h3>
+        <label>
+            <input type="checkbox" id="enableManualOverride">
+            Use custom text instead of automatic Bible text
+        </label>
+        <div id="manualOverrideInterface">
+            <h4>Manual Override Interface</h4>
+            <p>This should appear when checkbox is checked</p>
+            <button id="loadChapterTextBtn">Load Chapter Text</button>
+            <textarea id="chapterContent" rows="5" placeholder="Text will appear here..."></textarea>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 2: Event Binding</h3>
+        <button onclick="testEventBinding()">Test Event Binding</button>
+        <div id="eventTestResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 3: API Connection</h3>
+        <button onclick="testBibleAPI()">Test Bible API</button>
+        <div id="apiTestResult"></div>
+    </div>
+
+    <script>
+        // Test the manual override functionality
+        class ManualOverrideTest {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                console.log('Manual Override Test initialized');
+            }
+
+            bindEvents() {
+                const checkbox = document.getElementById('enableManualOverride');
+                if (checkbox) {
+                    checkbox.addEventListener('change', (e) => this.toggleManualOverride(e.target.checked));
+                    console.log('✅ Checkbox event listener bound');
+                } else {
+                    console.error('❌ Checkbox not found');
+                }
+
+                const loadBtn = document.getElementById('loadChapterTextBtn');
+                if (loadBtn) {
+                    loadBtn.addEventListener('click', () => this.loadChapterText());
+                    console.log('✅ Load button event listener bound');
+                } else {
+                    console.error('❌ Load button not found');
+                }
+            }
+
+            toggleManualOverride(enabled) {
+                const interface = document.getElementById('manualOverrideInterface');
+                if (interface) {
+                    interface.style.display = enabled ? 'block' : 'none';
+                    console.log(`✅ Manual override ${enabled ? 'enabled' : 'disabled'}`);
+                } else {
+                    console.error('❌ Manual override interface not found');
+                }
+            }
+
+            async loadChapterText() {
+                try {
+                    console.log('🔄 Loading chapter text...');
+                    const response = await fetch('http://meatpi:3005/api/books/GEN/chapters/1');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.data) {
+                            const chapterText = data.data.verses.map(v => v.text).join(' ');
+                            document.getElementById('chapterContent').value = chapterText;
+                            console.log('✅ Chapter text loaded successfully');
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to load chapter text:', error);
+                }
+            }
+        }
+
+        // Test functions
+        function testEventBinding() {
+            const result = document.getElementById('eventTestResult');
+            const checkbox = document.getElementById('enableManualOverride');
+            const loadBtn = document.getElementById('loadChapterTextBtn');
+            
+            if (checkbox && loadBtn) {
+                result.innerHTML = '<div class="success">✅ All elements found and event listeners should be bound</div>';
+                console.log('✅ Event binding test passed');
+            } else {
+                result.innerHTML = '<div class="error">❌ Some elements missing</div>';
+                console.error('❌ Event binding test failed');
+            }
+        }
+
+        async function testBibleAPI() {
+            const result = document.getElementById('apiTestResult');
+            try {
+                const response = await fetch('http://meatpi:3005/api/books');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        result.innerHTML = `<div class="success">✅ Bible API working! Found ${data.data.length} books</div>`;
+                        console.log('✅ Bible API test passed');
+                    } else {
+                        result.innerHTML = '<div class="error">❌ Bible API returned error</div>';
+                    }
+                } else {
+                    result.innerHTML = `<div class="error">❌ Bible API returned status: ${response.status}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Bible API test failed: ${error.message}</div>`;
+                console.error('❌ Bible API test failed:', error);
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new ManualOverrideTest();
+        });
+    </script>
+</body>
+</html>
