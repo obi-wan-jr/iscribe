@@ -1328,20 +1328,33 @@ class AudibibleApp {
             loadBtn.textContent = '⏳ Loading...';
             loadBtn.disabled = true;
 
+            // Determine the correct API hostname based on current location
+            const currentHost = window.location.hostname;
+            const bibleApiHost = currentHost === 'localhost' || currentHost === '127.0.0.1' ? 'localhost' : 'meatpi';
+            
+            console.log(`Current host: ${currentHost}, using Bible API host: ${bibleApiHost}`);
+
             // Fetch the chapter text from the API
-            const response = await fetch(`http://meatpi:3005/api/books/${book}/chapters/${chapter}`);
+            const response = await fetch(`http://${bibleApiHost}:3005/api/books/${book}/chapters/${chapter}`);
             
             if (response.ok) {
                 const data = await response.json();
+                console.log('API response received:', data);
+                
                 if (data.success && data.data) {
                     // Use the full chapter text if available, otherwise extract from verses
                     let chapterText;
                     if (data.data.text && data.data.text.trim()) {
                         chapterText = data.data.text.trim();
+                        console.log('Using full chapter text from data.text');
                     } else {
                         // Fallback to extracting from verses array
                         chapterText = data.data.verses.map(v => v.text).join(' ');
+                        console.log('Using text extracted from verses array');
                     }
+                    
+                    console.log(`Final chapter text length: ${chapterText.length} characters`);
+                    console.log(`Text preview: ${chapterText.substring(0, 200)}...`);
                     
                     // Set the chapter content
                     document.getElementById('chapterContent').value = chapterText;
@@ -1364,10 +1377,13 @@ class AudibibleApp {
                     // Show success message
                     this.showManualOverrideStatus('success', `Chapter text loaded successfully! (${chapterText.length} characters)`);
                 } else {
+                    console.error('Invalid API response format:', data);
                     throw new Error('Invalid response format from API');
                 }
             } else {
-                throw new Error(`API request failed: ${response.status}`);
+                const errorText = await response.text();
+                console.error(`API request failed: ${response.status} - ${errorText}`);
+                throw new Error(`API request failed: ${response.status} - ${errorText}`);
             }
         } catch (error) {
             console.error('Failed to load chapter text:', error);
