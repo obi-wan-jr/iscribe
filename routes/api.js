@@ -600,8 +600,32 @@ async function processTranscriptionInBackground(jobId, params, context = null) {
             return;
         }
 
-        const bibleText = textResult.text;
-        console.log(`Fetched complete chapter: ${bibleText.length} characters, ${textResult.metadata.sentenceCount} sentences`);
+        let bibleText = textResult.text;
+        let maxSentencesValue = maxSentences ? parseInt(maxSentences) : 5;
+        
+        // Check for manual override
+        if (params.manualOverride && params.manualOverride.enabled) {
+            console.log('Manual override enabled, using custom text');
+            
+            // Use manual override text instead of fetched text
+            bibleText = params.manualOverride.content;
+            
+            // Use manual override settings
+            if (params.manualOverride.maxSentences) {
+                maxSentencesValue = parseInt(params.manualOverride.maxSentences);
+            }
+            
+            // Update progress message
+            sendContextualProgress(jobId, {
+                type: 'progress',
+                step: 'manual_override',
+                progress: 8,
+                message: 'Manual override text loaded...',
+                details: `Using custom text: ${bibleText.length} characters`
+            }, context);
+        }
+        
+        console.log(`Final text to process: ${bibleText.length} characters, maxSentences: ${maxSentencesValue}`);
 
         // Step 2: Chunk the text based on sentence limits for multiple files
         sendContextualProgress(jobId, {
@@ -609,11 +633,8 @@ async function processTranscriptionInBackground(jobId, params, context = null) {
             step: 'chunk_text',
             progress: 10,
             message: 'Processing chapter text...',
-            details: `Processing ${textResult.metadata.sentenceCount} sentences, ${bibleText.length} characters`
+            details: `Processing text with maxSentences=${maxSentencesValue}`
         }, context);
-
-        const maxSentencesValue = maxSentences ? parseInt(maxSentences) : 5;
-        console.log(`Chunking text with maxSentences: ${maxSentencesValue} (from job params: ${maxSentences})`);
         
         const textChunks = fishAudioService.chunkText(
             bibleText, 
@@ -634,12 +655,19 @@ async function processTranscriptionInBackground(jobId, params, context = null) {
             details: `Generating "${book}, Chapter ${chapter}" with Fish.Audio`
         }, context);
 
-        // Get full book name for TTS introduction
-        const fullBookName = bibleService.getBookName(book);
-        console.log(`Generating chapter introduction: "${fullBookName}, Chapter ${chapter}"`);
+        // Get introduction text (manual override or default)
+        let introText;
+        if (params.manualOverride && params.manualOverride.enabled && params.manualOverride.introduction) {
+            introText = params.manualOverride.introduction;
+            console.log(`Using manual override introduction: "${introText}"`);
+        } else {
+            const fullBookName = bibleService.getBookName(book);
+            introText = `${fullBookName}, Chapter ${chapter}.`;
+            console.log(`Using default introduction: "${introText}"`);
+        }
+        
         const introResult = await fishAudioService.generateChapterIntroduction(
-            fullBookName,
-            chapter,
+            introText,
             fishApiKey,
             voiceModelId,
             tempDir

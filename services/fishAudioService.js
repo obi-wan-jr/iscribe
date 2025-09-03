@@ -84,18 +84,45 @@ class FishAudioService {
     }
 
     /**
+     * Preprocess text to handle pauses and formatting
+     * @param {string} text - The text to preprocess
+     * @returns {string} Preprocessed text with pauses converted to SSML
+     */
+    preprocessText(text) {
+        if (!text) return text;
+        
+        let processedText = text;
+        
+        // Convert pause markers to SSML breaks
+        // Each / represents 0.5 seconds, // represents 1 second
+        processedText = processedText.replace(/\/{3,}/g, '<break time="1.5s"/>'); // 3+ slashes = 1.5s
+        processedText = processedText.replace(/\/\//g, '<break time="1s"/>'); // // = 1 second
+        processedText = processedText.replace(/\//g, '<break time="0.5s"/>'); // / = 0.5 seconds
+        
+        // Convert markdown formatting to SSML
+        processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<emphasis level="strong">$1</emphasis>'); // Bold
+        processedText = processedText.replace(/\*(.*?)\*/g, '<emphasis level="moderate">$1</emphasis>'); // Italic
+        processedText = processedText.replace(/_(.*?)_/g, '<emphasis level="reduced">$1</emphasis>'); // Underline
+        
+        return processedText;
+    }
+
+    /**
      * Split text into chunks suitable for TTS processing
      * @param {string} text - Full text to chunk
      * @param {number|null} maxSentences - Maximum sentences per chunk (null for character-based chunking)
      * @returns {Array<string>} - Array of text chunks
      */
     chunkText(text, maxSentences = null) {
+        // Preprocess text first to handle pauses and formatting
+        const processedText = this.preprocessText(text);
+        
         const chunks = [];
         
         console.log(`📄 FishAudioService.chunkText called with maxSentences: ${maxSentences}`);
         
         // First, split by sentences to maintain natural breaks
-        const sentences = text.split(/([.!?]+\s*)/).filter(s => s.trim().length > 0);
+        const sentences = processedText.split(/([.!?]+\s*)/).filter(s => s.trim().length > 0);
         
         // If maxSentences is specified, use sentence-based chunking
         if (maxSentences && maxSentences > 0) {
@@ -156,16 +183,14 @@ class FishAudioService {
 
     /**
      * Generate speech with chapter introduction
-     * @param {string} book - Bible book name
-     * @param {number} chapter - Chapter number
+     * @param {string} introText - Introduction text to speak
      * @param {string} apiKey - Fish.Audio API key
      * @param {string} voiceModelId - Custom voice model ID
      * @param {string} outputDir - Directory to save audio file
      * @returns {Promise<Object>} - {success: boolean, audioPath?: string, error?: string}
      */
-    async generateChapterIntroduction(book, chapter, apiKey, voiceModelId, outputDir) {
+    async generateChapterIntroduction(introText, apiKey, voiceModelId, outputDir) {
         try {
-            const introText = `${book}, Chapter ${chapter}.`;
             const introPath = path.join(outputDir, 'intro.mp3');
             
             console.log(`Generating chapter introduction: "${introText}"`);

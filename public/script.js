@@ -1294,11 +1294,12 @@ class AudibibleApp {
 
         try {
             // Fetch the chapter text from the API
-            const response = await fetch(`${this.apiBase}/bible/books/${book}/chapters/${chapter}`);
+            const response = await fetch(`http://localhost:3005/api/books/${book}/chapters/${chapter}`);
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && data.data) {
-                    const chapterText = data.data.text || data.data.verses.map(v => v.text).join(' ');
+                    // Extract text from verses array
+                    const chapterText = data.data.verses.map(v => v.text).join(' ');
                     
                     // Set the chapter content
                     document.getElementById('chapterContent').value = chapterText;
