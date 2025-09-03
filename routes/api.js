@@ -5,7 +5,7 @@ const multer = require('multer');
 const router = express.Router();
 
 // Import services
-const BibleGatewayService = require('../services/bibleGatewayService');
+const LocalBibleService = require('../services/localBibleService');
 const FishAudioService = require('../services/fishAudioService');
 const AudioProcessingService = require('../services/audioProcessingService');
 const VideoProcessingService = require('../services/videoProcessingService');
@@ -13,7 +13,7 @@ const jobQueueService = require('../services/jobQueueService');
 const bibleBookData = require('../services/bibleBookData');
 
 // Initialize services
-const bibleService = new BibleGatewayService();
+const bibleService = new LocalBibleService();
 const fishAudioService = new FishAudioService();
 const audioService = new AudioProcessingService();
 const videoService = new VideoProcessingService();
@@ -55,7 +55,7 @@ router.get('/health', (req, res) => {
         message: 'Audibible API is running',
         timestamp: new Date().toISOString(),
         services: {
-            bibleGateway: 'available',
+            localBible: 'available',
             fishAudio: 'available',
             audioProcessing: 'available'
         }
