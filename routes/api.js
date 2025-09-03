@@ -65,7 +65,7 @@ router.get('/health', (req, res) => {
 /**
  * GET /api/bible/books - Get list of Bible books with chapter counts
  */
-router.get('/bible/books', (req, res) => {
+router.get('/bible/books', async (req, res) => {
     try {
         const books = await bibleService.getBibleBooks();
         res.json({
