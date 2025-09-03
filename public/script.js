@@ -1387,12 +1387,13 @@ class AudibibleApp {
             return;
         }
 
+        // Show loading state
+        const loadBtn = document.getElementById('loadChapterTextBtn');
+        const originalText = loadBtn.textContent;
+        loadBtn.textContent = '⏳ Loading...';
+        loadBtn.disabled = true;
+
         try {
-            // Show loading state
-            const loadBtn = document.getElementById('loadChapterTextBtn');
-            const originalText = loadBtn.textContent;
-            loadBtn.textContent = '⏳ Loading...';
-            loadBtn.disabled = true;
 
             // Determine the correct API hostname based on current location
             const currentHost = window.location.hostname;
