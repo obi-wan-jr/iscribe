@@ -505,7 +505,7 @@ function sendContextualProgress(jobId, data, context) {
         data.progress = adjustProgressForContext(data.progress, context);
         data.message = `Chapter ${context.currentChapter}/${context.totalChapters}: ${data.message}`;
     }
-    sendContextualProgress(jobId, data);
+    sendProgress(jobId, data);
 }
 
 // Background transcription processing function
