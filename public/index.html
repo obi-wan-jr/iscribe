@@ -220,6 +220,74 @@
                         </div>
                     </div>
 
+                    <!-- Advanced TTS Override Section -->
+                    <div class="advanced-tts-section">
+                        <h3>🔧 Advanced TTS Override</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="enableManualOverride">
+                                    <span class="checkmark"></span>
+                                    Enable manual text editing before TTS processing
+                                </label>
+                                <small>Review and edit the Bible text before it's sent to Fish.Audio for speech generation</small>
+                            </div>
+                        </div>
+                        
+                        <div id="manualOverrideInterface" class="manual-override-interface" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="chapterIntroduction">Chapter Introduction Text:</label>
+                                    <textarea id="chapterIntroduction" rows="2" placeholder="Text for the chapter introduction (e.g., 'Genesis, Chapter 1')"></textarea>
+                                    <small>Customize the introduction text that will be spoken before the chapter content</small>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group full-width">
+                                    <label for="chapterContent">Chapter Content Text:</label>
+                                    <div class="text-editor-container">
+                                        <div class="text-editor-toolbar">
+                                            <button type="button" class="toolbar-btn" id="formatBold" title="Bold">B</button>
+                                            <button type="button" class="toolbar-btn" id="formatItalic" title="Italic">I</button>
+                                            <button type="button" class="toolbar-btn" id="formatUnderline" title="Underline">U</button>
+                                            <button type="button" class="toolbar-btn" id="addPause" title="Add Pause (/)">/</button>
+                                            <button type="button" class="toolbar-btn" id="addLongPause" title="Add Long Pause (//)">//</button>
+                                            <button type="button" class="toolbar-btn" id="resetText" title="Reset to Original">🔄 Reset</button>
+                                            <button type="button" class="toolbar-btn" id="previewText" title="Preview Text">👁️ Preview</button>
+                                        </div>
+                                        <textarea id="chapterContent" rows="12" placeholder="The Bible text will appear here after you select a book and chapter..."></textarea>
+                                        <div class="text-stats">
+                                            <span class="char-count">Characters: 0</span>
+                                            <span class="word-count">Words: 0</span>
+                                            <span class="sentence-count">Sentences: 0</span>
+                                        </div>
+                                    </div>
+                                    <small>Edit the chapter text as needed. Use / for 1-second pauses, // for 2-second pauses. Bold, italic, and underline formatting will be preserved in the TTS processing.</small>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="maxSentencesOverride">Sentences per Audio Part:</label>
+                                    <input type="number" id="maxSentencesOverride" min="1" max="100" value="5" placeholder="5">
+                                    <small>Override the default sentence splitting for this specific transcription</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="ttsSpeed">TTS Speed:</label>
+                                    <select id="ttsSpeed">
+                                        <option value="normal" selected>Normal</option>
+                                        <option value="slow">Slow</option>
+                                        <option value="fast">Fast</option>
+                                        <option value="very-slow">Very Slow</option>
+                                        <option value="very-fast">Very Fast</option>
+                                    </select>
+                                    <small>Adjust the speaking speed for this transcription</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <button id="startTranscription" class="btn btn-primary">🎬 Start Transcription</button>
                 </div>
             </section>

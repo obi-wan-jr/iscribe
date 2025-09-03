@@ -298,6 +298,115 @@ input[type="password"] {
     transition: width 0.3s ease;
 }
 
+/* Advanced TTS Section */
+.advanced-tts-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.advanced-tts-section h3 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
+}
+
+.manual-override-interface {
+    background: white;
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    border: 1px solid #e9ecef;
+}
+
+.text-editor-container {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.text-editor-toolbar {
+    background: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    padding: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.toolbar-btn {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.toolbar-btn:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.toolbar-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #0056b3;
+}
+
+#chapterContent {
+    border: none;
+    border-radius: 0;
+    resize: vertical;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.text-stats {
+    background: #f8f9fa;
+    border-top: 1px solid #ddd;
+    padding: 0.5rem;
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.text-stats span {
+    display: inline-block;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Text formatting preview */
+.text-preview {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.text-preview h4 {
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.text-preview .formatted-text {
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    line-height: 1.4;
+}
+
 .upload-status {
     text-align: center;
     font-size: 0.9rem;
