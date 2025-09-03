@@ -46,21 +46,9 @@ class AudibibleApp {
         document.getElementById('refreshQueue').addEventListener('click', () => this.loadQueue());
         
         // Chapter validation
-        document.getElementById('bibleBook').addEventListener('change', () => {
-            this.validateChapter();
-            // Auto-load text if manual override is enabled
-            if (document.getElementById('enableManualOverride').checked) {
-                this.loadChapterText();
-            }
-        });
+        document.getElementById('bibleBook').addEventListener('change', () => this.validateChapter());
         document.getElementById('chapter').addEventListener('input', () => this.validateChapter());
-        document.getElementById('chapter').addEventListener('blur', () => {
-            this.validateChapter();
-            // Auto-load text if manual override is enabled
-            if (document.getElementById('enableManualOverride').checked) {
-                this.loadChapterText();
-            }
-        });
+        document.getElementById('chapter').addEventListener('blur', () => this.validateChapter());
         
         // Full book transcription toggle
         document.getElementById('transcribeFullBook').addEventListener('change', (e) => this.toggleFullBookMode(e.target.checked));
@@ -69,17 +57,6 @@ class AudibibleApp {
         document.getElementById('createVideo').addEventListener('change', (e) => this.toggleVideoSection(e.target.checked));
         document.getElementById('backgroundImage').addEventListener('change', (e) => this.handleImageUpload(e));
         document.getElementById('removeImage').addEventListener('click', () => this.removeImage());
-        
-        // Advanced TTS Override
-        document.getElementById('enableManualOverride').addEventListener('change', (e) => this.toggleManualOverride(e.target.checked));
-        document.getElementById('formatBold').addEventListener('click', () => this.formatText('bold'));
-        document.getElementById('formatItalic').addEventListener('click', () => this.formatText('italic'));
-        document.getElementById('formatUnderline').addEventListener('click', () => this.formatText('underline'));
-        document.getElementById('addPause').addEventListener('click', () => this.addPause());
-        document.getElementById('addLongPause').addEventListener('click', () => this.addLongPause());
-        document.getElementById('resetText').addEventListener('click', () => this.resetText());
-        document.getElementById('previewText').addEventListener('click', () => this.previewText());
-        document.getElementById('chapterContent').addEventListener('input', () => this.updateTextStats());
     }
 
     // Check if server is running and load configuration
@@ -688,10 +665,7 @@ class AudibibleApp {
         const hasLocalVoiceModel = localStorage.getItem('voiceModelId');
         // We'll let the server validate if API key is available via environment
 
-        // Check if manual override is enabled
-        const manualOverrideEnabled = document.getElementById('enableManualOverride').checked;
-        
-        let config = {
+        return {
             book,
             chapter: transcribeFullBook ? null : parseInt(chapter),
             version,
@@ -701,19 +675,6 @@ class AudibibleApp {
             backgroundImagePath: this.uploadedImagePath,
             transcribeFullBook: transcribeFullBook
         };
-
-        // Add manual override data if enabled
-        if (manualOverrideEnabled) {
-            config.manualOverride = {
-                enabled: true,
-                introduction: document.getElementById('chapterIntroduction').value,
-                content: document.getElementById('chapterContent').value,
-                maxSentences: document.getElementById('maxSentencesOverride').value ? parseInt(document.getElementById('maxSentencesOverride').value) : 5,
-                ttsSpeed: document.getElementById('ttsSpeed').value
-            };
-        }
-
-        return config;
     }
 
 
@@ -1272,29 +1233,283 @@ class AudibibleApp {
         }
     }
 
-    // Advanced TTS Override Methods
+    // ===== MANUAL OVERRIDE METHODS =====
+    
     toggleManualOverride(enabled) {
         const overrideInterface = document.getElementById('manualOverrideInterface');
         overrideInterface.style.display = enabled ? 'block' : 'none';
         
         if (enabled) {
-            this.loadChapterText();
+            this.initializeManualOverride();
+        } else {
+            this.clearManualOverrideText();
+        }
+    }
+
+    initializeManualOverride() {
+        document.querySelector('input[name="textSource"][value="load"]').checked = true;
+        this.handleTextSourceChange('load');
+        document.getElementById('chapterContent').value = '';
+        document.getElementById('chapterIntroduction').value = '';
+        this.updateTextStats();
+    }
+
+    clearManualOverrideText() {
+        document.getElementById('chapterContent').value = '';
+        document.getElementById('chapterIntroduction').value = '';
+        this.updateTextStats();
+        const existingPreview = document.querySelector('.text-preview');
+        if (existingPreview) existingPreview.remove();
+    }
+
+    handleTextSourceChange(source) {
+        const loadTextSection = document.getElementById('loadTextSection');
+        
+        if (source === 'load') {
+            loadTextSection.style.display = 'block';
+            const book = document.getElementById('bibleBook').value;
+            const chapter = document.getElementById('chapter').value;
+            document.getElementById('loadChapterTextBtn').disabled = !(book && chapter);
+        } else {
+            loadTextSection.style.display = 'none';
+            document.getElementById('chapterContent').value = '';
+            document.getElementById('chapterIntroduction').value = '';
+            this.updateTextStats();
         }
     }
 
     async loadChapterText() {
         const book = document.getElementById('bibleBook').value;
         const chapter = document.getElementById('chapter').value;
-        const version = document.getElementById('version').value;
         
         if (!book || !chapter) {
-            document.getElementById('chapterContent').value = 'Please select a book and chapter first.';
+            alert('Please select a book and chapter first.');
             return;
         }
 
         try {
+            const loadBtn = document.getElementById('loadChapterTextBtn');
+            const originalText = loadBtn.textContent;
+            loadBtn.textContent = '⏳ Loading...';
+            loadBtn.disabled = true;
+
+            const response = await fetch(`http://localhost:3005/api/books/${book}/chapters/${chapter}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.data) {
+                    const chapterText = data.data.verses.map(v => v.text).join(' ');
+                    document.getElementById('chapterContent').value = chapterText;
+                    
+                    const bookName = this.getBookDisplayName(book);
+                    document.getElementById('chapterIntroduction').value = `${bookName}, Chapter ${chapter}`;
+                    
+                    this.updateTextStats();
+                    this.originalChapterText = chapterText;
+                    this.originalIntroduction = `${bookName}, Chapter ${chapter}`;
+                    
+                    this.showManualOverrideStatus('success', 'Chapter text loaded successfully!');
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load chapter text:', error);
+            document.getElementById('chapterContent').value = 'Failed to load chapter text. Please try again.';
+            this.showManualOverrideStatus('error', `Failed to load text: ${error.message}`);
+        } finally {
+            const loadBtn = document.getElementById('loadChapterTextBtn');
+            loadBtn.textContent = originalText;
+            loadBtn.disabled = false;
+        }
+    }
+
+    getBookDisplayName(bookId) {
+        const bookSelect = document.getElementById('bibleBook');
+        const option = bookSelect.querySelector(`option[value="${bookId}"]`);
+        return option ? option.textContent : bookId;
+    }
+
+    formatText(type) {
+        const textarea = document.getElementById('chapterContent');
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        
+        if (start === end) {
+            this.showManualOverrideStatus('info', 'Please select some text to format');
+            return;
+        }
+        
+        let formattedText = '';
+        switch (type) {
+            case 'bold': formattedText = `**${text.substring(start, end)}**`; break;
+            case 'italic': formattedText = `*${text.substring(start, end)}*`; break;
+            case 'underline': formattedText = `_${text.substring(start, end)}_`; break;
+        }
+        
+        if (formattedText) {
+            textarea.value = text.substring(0, start) + formattedText + text.substring(end);
+            textarea.setSelectionRange(start + 2, start + 2 + (end - start));
+            textarea.focus();
+            this.updateTextStats();
+        }
+    }
+
+    addPause() { this.insertAtCursor('/'); }
+    addLongPause() { this.insertAtCursor('//'); }
+
+    insertAtCursor(text) {
+        const textarea = document.getElementById('chapterContent');
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const currentText = textarea.value;
+        
+        textarea.value = currentText.substring(0, start) + text + currentText.substring(end);
+        textarea.setSelectionRange(start + text.length, start + text.length);
+        textarea.focus();
+        this.updateTextStats();
+    }
+
+    resetText() {
+        if (this.originalChapterText) {
+            document.getElementById('chapterContent').value = this.originalChapterText;
+            document.getElementById('chapterIntroduction').value = this.originalIntroduction;
+            this.updateTextStats();
+            this.showManualOverrideStatus('success', 'Text reset to original');
+        } else {
+            this.showManualOverrideStatus('info', 'No original text to reset to');
+        }
+    }
+
+    previewText() {
+        const introduction = document.getElementById('chapterIntroduction').value;
+        const content = document.getElementById('chapterContent').value;
+        
+        if (!content.trim()) {
+            this.showManualOverrideStatus('warning', 'Please enter some text to preview');
+            return;
+        }
+        
+        const existingPreview = document.querySelector('.text-preview');
+        if (existingPreview) existingPreview.remove();
+        
+        const preview = document.createElement('div');
+        preview.className = 'text-preview';
+        preview.innerHTML = `
+            <h4>📖 Text Preview (as it will be processed)</h4>
+            <div class="formatted-text">${introduction}\n\n${content}</div>
+        `;
+        
+        const textEditor = document.querySelector('.text-editor-container');
+        textEditor.parentNode.insertBefore(preview, textEditor.nextSibling);
+        this.showManualOverrideStatus('success', 'Text preview created');
+    }
+
+    updateTextStats() {
+        const text = document.getElementById('chapterContent').value;
+        const charCount = text.length;
+        const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+        const sentenceCount = text.trim() ? text.split(/[.!?]+/).filter(s => s.trim()).length : 0;
+        
+        document.querySelector('.char-count').textContent = `Characters: ${charCount}`;
+        document.querySelector('.word-count').textContent = `Words: ${wordCount}`;
+        document.querySelector('.sentence-count').textContent = `Sentences: ${sentenceCount}`;
+    }
+
+    showManualOverrideStatus(type, message) {
+        let statusDiv = document.querySelector('.manual-override-status');
+        if (!statusDiv) {
+            statusDiv = document.createElement('div');
+            statusDiv.className = 'manual-override-status';
+            document.querySelector('.manual-override-interface').appendChild(statusDiv);
+        }
+        
+        statusDiv.className = `manual-override-status ${type}`;
+        statusDiv.textContent = message;
+        
+        setTimeout(() => {
+            if (statusDiv) statusDiv.remove();
+        }, 3000);
+    }
+
+    // ===== MANUAL OVERRIDE METHODS =====
+    
+    toggleManualOverride(enabled) {
+        const overrideInterface = document.getElementById('manualOverrideInterface');
+        overrideInterface.style.display = enabled ? 'block' : 'none';
+        
+        if (enabled) {
+            // Initialize with default state
+            this.initializeManualOverride();
+        } else {
+            // Clear any loaded text
+            this.clearManualOverrideText();
+        }
+    }
+
+    initializeManualOverride() {
+        // Set default text source to "load from Bible API"
+        document.querySelector('input[name="textSource"][value="load"]').checked = true;
+        this.handleTextSourceChange('load');
+        
+        // Clear any existing text
+        document.getElementById('chapterContent').value = '';
+        document.getElementById('chapterIntroduction').value = '';
+        this.updateTextStats();
+    }
+
+    clearManualOverrideText() {
+        document.getElementById('chapterContent').value = '';
+        document.getElementById('chapterIntroduction').value = '';
+        this.updateTextStats();
+        
+        // Remove any preview
+        const existingPreview = document.querySelector('.text-preview');
+        if (existingPreview) {
+            existingPreview.remove();
+        }
+    }
+
+    handleTextSourceChange(source) {
+        const loadTextSection = document.getElementById('loadTextSection');
+        
+        if (source === 'load') {
+            loadTextSection.style.display = 'block';
+            // Check if we have book/chapter selected and can load text
+            const book = document.getElementById('bibleBook').value;
+            const chapter = document.getElementById('chapter').value;
+            if (book && chapter) {
+                document.getElementById('loadChapterTextBtn').disabled = false;
+            } else {
+                document.getElementById('loadChapterTextBtn').disabled = true;
+            }
+        } else {
+            loadTextSection.style.display = 'none';
+            // For custom text, clear the content and allow user to write
+            document.getElementById('chapterContent').value = '';
+            document.getElementById('chapterIntroduction').value = '';
+            this.updateTextStats();
+        }
+    }
+
+    async loadChapterText() {
+        const book = document.getElementById('bibleBook').value;
+        const chapter = document.getElementById('chapter').value;
+        
+        if (!book || !chapter) {
+            alert('Please select a book and chapter first.');
+            return;
+        }
+
+        try {
+            // Show loading state
+            const loadBtn = document.getElementById('loadChapterTextBtn');
+            const originalText = loadBtn.textContent;
+            loadBtn.textContent = '⏳ Loading...';
+            loadBtn.disabled = true;
+
             // Fetch the chapter text from the API
             const response = await fetch(`http://localhost:3005/api/books/${book}/chapters/${chapter}`);
+            
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && data.data) {
@@ -1314,11 +1529,24 @@ class AudibibleApp {
                     // Store original text for reset functionality
                     this.originalChapterText = chapterText;
                     this.originalIntroduction = `${bookName}, Chapter ${chapter}`;
+                    
+                    // Show success message
+                    this.showManualOverrideStatus('success', 'Chapter text loaded successfully!');
+                } else {
+                    throw new Error('Invalid response format from API');
                 }
+            } else {
+                throw new Error(`API request failed: ${response.status}`);
             }
         } catch (error) {
             console.error('Failed to load chapter text:', error);
             document.getElementById('chapterContent').value = 'Failed to load chapter text. Please try again.';
+            this.showManualOverrideStatus('error', `Failed to load text: ${error.message}`);
+        } finally {
+            // Restore button state
+            const loadBtn = document.getElementById('loadChapterTextBtn');
+            loadBtn.textContent = originalText;
+            loadBtn.disabled = false;
         }
     }
 
@@ -1333,6 +1561,12 @@ class AudibibleApp {
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const text = textarea.value;
+        
+        if (start === end) {
+            // No text selected, show message
+            this.showManualOverrideStatus('info', 'Please select some text to format');
+            return;
+        }
         
         let formattedText = '';
         switch (type) {
@@ -1380,12 +1614,20 @@ class AudibibleApp {
             document.getElementById('chapterContent').value = this.originalChapterText;
             document.getElementById('chapterIntroduction').value = this.originalIntroduction;
             this.updateTextStats();
+            this.showManualOverrideStatus('success', 'Text reset to original');
+        } else {
+            this.showManualOverrideStatus('info', 'No original text to reset to');
         }
     }
 
     previewText() {
         const introduction = document.getElementById('chapterIntroduction').value;
         const content = document.getElementById('chapterContent').value;
+        
+        if (!content.trim()) {
+            this.showManualOverrideStatus('warning', 'Please enter some text to preview');
+            return;
+        }
         
         // Remove existing preview
         const existingPreview = document.querySelector('.text-preview');
@@ -1404,6 +1646,8 @@ class AudibibleApp {
         // Insert after the text editor
         const textEditor = document.querySelector('.text-editor-container');
         textEditor.parentNode.insertBefore(preview, textEditor.nextSibling);
+        
+        this.showManualOverrideStatus('success', 'Text preview created');
     }
 
     updateTextStats() {
@@ -1415,6 +1659,92 @@ class AudibibleApp {
         document.querySelector('.char-count').textContent = `Characters: ${charCount}`;
         document.querySelector('.word-count').textContent = `Words: ${wordCount}`;
         document.querySelector('.sentence-count').textContent = `Sentences: ${sentenceCount}`;
+    }
+
+    showManualOverrideStatus(type, message) {
+        // Create or update status message
+        let statusDiv = document.querySelector('.manual-override-status');
+        if (!statusDiv) {
+            statusDiv = document.createElement('div');
+            statusDiv.className = 'manual-override-status';
+            document.querySelector('.manual-override-interface').appendChild(statusDiv);
+        }
+        
+        statusDiv.className = `manual-override-status ${type}`;
+        statusDiv.textContent = message;
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            if (statusDiv) {
+                statusDiv.remove();
+            }
+        }, 3000);
+    }
+
+    // Enhanced form validation with manual override support
+    validateTranscriptionForm() {
+        const book = document.getElementById('bibleBook').value;
+        const chapter = document.getElementById('chapter').value;
+        const version = document.getElementById('version').value;
+        const maxSentences = document.getElementById('maxSentences').value;
+        const transcribeFullBook = document.getElementById('transcribeFullBook').checked;
+        const manualOverrideEnabled = document.getElementById('enableManualOverride').checked;
+
+        if (!book) {
+            alert('Please select a Bible book');
+            return null;
+        }
+
+        // For full book transcription, we don't need chapter validation
+        if (!transcribeFullBook) {
+            if (!chapter || chapter < 1) {
+                alert('Please enter a valid chapter number');
+                return null;
+            }
+
+            // Check if chapter validation failed
+            const container = document.querySelector('.chapter-input-container');
+            if (container.classList.contains('invalid')) {
+                alert('Please enter a valid chapter number for the selected book');
+                return null;
+            }
+        }
+
+        // Check if voice model is configured locally
+        const hasLocalVoiceModel = localStorage.getItem('voiceModelId');
+
+        let config = {
+            book,
+            chapter: transcribeFullBook ? null : parseInt(chapter),
+            version,
+            maxSentences: maxSentences ? parseInt(maxSentences) : 5,
+            excludeVerseNumbers: true,
+            createVideo: document.getElementById('createVideo').checked,
+            backgroundImagePath: this.uploadedImagePath,
+            transcribeFullBook: transcribeFullBook
+        };
+
+        // Add manual override data if enabled
+        if (manualOverrideEnabled) {
+            const overrideContent = document.getElementById('chapterContent').value.trim();
+            const overrideIntroduction = document.getElementById('chapterIntroduction').value.trim();
+            
+            if (!overrideContent) {
+                alert('Please enter text content for manual override');
+                return null;
+            }
+            
+            config.manualOverride = {
+                enabled: true,
+                introduction: overrideIntroduction || `${this.getBookDisplayName(book)}, Chapter ${chapter}`,
+                content: overrideContent,
+                maxSentences: document.getElementById('maxSentencesOverride').value ? 
+                    parseInt(document.getElementById('maxSentencesOverride').value) : 5,
+                ttsSpeed: document.getElementById('ttsSpeed').value
+            };
+        }
+
+        return config;
     }
 }
 
