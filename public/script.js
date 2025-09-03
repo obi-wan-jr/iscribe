@@ -1329,7 +1329,7 @@ class AudibibleApp {
             loadBtn.disabled = true;
 
             // Fetch the chapter text from the API
-            const response = await fetch(`http://localhost:3005/api/books/${book}/chapters/${chapter}`);
+            const response = await fetch(`http://meatpi:3005/api/books/${book}/chapters/${chapter}`);
             
             if (response.ok) {
                 const data = await response.json();
