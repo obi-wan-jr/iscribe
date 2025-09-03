@@ -1334,11 +1334,21 @@ class AudibibleApp {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && data.data) {
-                    // Extract text from verses array
-                    const chapterText = data.data.verses.map(v => v.text).join(' ');
+                    // Use the full chapter text if available, otherwise extract from verses
+                    let chapterText;
+                    if (data.data.text && data.data.text.trim()) {
+                        chapterText = data.data.text.trim();
+                    } else {
+                        // Fallback to extracting from verses array
+                        chapterText = data.data.verses.map(v => v.text).join(' ');
+                    }
                     
                     // Set the chapter content
                     document.getElementById('chapterContent').value = chapterText;
+                    
+                    // Debug: Log the loaded text length
+                    console.log(`Loaded chapter text: ${chapterText.length} characters`);
+                    console.log(`Text preview: ${chapterText.substring(0, 100)}...`);
                     
                     // Set the chapter introduction
                     const bookName = this.getBookDisplayName(book);
@@ -1352,7 +1362,7 @@ class AudibibleApp {
                     this.originalIntroduction = `${bookName}, Chapter ${chapter}`;
                     
                     // Show success message
-                    this.showManualOverrideStatus('success', 'Chapter text loaded successfully!');
+                    this.showManualOverrideStatus('success', `Chapter text loaded successfully! (${chapterText.length} characters)`);
                 } else {
                     throw new Error('Invalid response format from API');
                 }
