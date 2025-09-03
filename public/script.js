@@ -1255,27 +1255,69 @@ class AudibibleApp {
     // ===== MANUAL OVERRIDE METHODS =====
     
     toggleManualOverride(enabled) {
+        console.log('toggleManualOverride called with:', enabled);
+        
         const overrideInterface = document.getElementById('manualOverrideInterface');
+        if (!overrideInterface) {
+            console.error('manualOverrideInterface element not found!');
+            return;
+        }
+        
+        console.log('Found manualOverrideInterface, setting display to:', enabled ? 'block' : 'none');
         overrideInterface.style.display = enabled ? 'block' : 'none';
         
         if (enabled) {
             // Initialize with default state
+            console.log('Initializing manual override...');
             this.initializeManualOverride();
         } else {
             // Clear any loaded text
+            console.log('Clearing manual override...');
             this.clearManualOverrideText();
         }
+        
+        console.log('Manual override toggle completed');
     }
 
     initializeManualOverride() {
-        // Set default text source to "load from Bible API"
-        document.querySelector('input[name="textSource"][value="load"]').checked = true;
-        this.handleTextSourceChange('load');
+        console.log('initializeManualOverride called');
         
-        // Clear any existing text
-        document.getElementById('chapterContent').value = '';
-        document.getElementById('chapterIntroduction').value = '';
-        this.updateTextStats();
+        try {
+            // Set default text source to "load from Bible API"
+            const loadRadio = document.querySelector('input[name="textSource"][value="load"]');
+            if (loadRadio) {
+                loadRadio.checked = true;
+                console.log('Set load radio button to checked');
+            } else {
+                console.error('Load radio button not found!');
+            }
+            
+            this.handleTextSourceChange('load');
+            
+            // Clear any existing text
+            const chapterContent = document.getElementById('chapterContent');
+            const chapterIntroduction = document.getElementById('chapterIntroduction');
+            
+            if (chapterContent) {
+                chapterContent.value = '';
+                console.log('Cleared chapterContent');
+            } else {
+                console.error('chapterContent element not found!');
+            }
+            
+            if (chapterIntroduction) {
+                chapterIntroduction.value = '';
+                console.log('Cleared chapterIntroduction');
+            } else {
+                console.error('chapterIntroduction element not found!');
+            }
+            
+            this.updateTextStats();
+            console.log('Manual override initialization completed');
+            
+        } catch (error) {
+            console.error('Error in initializeManualOverride:', error);
+        }
     }
 
     clearManualOverrideText() {
@@ -1291,24 +1333,48 @@ class AudibibleApp {
     }
 
     handleTextSourceChange(source) {
+        console.log('handleTextSourceChange called with source:', source);
+        
         const loadTextSection = document.getElementById('loadTextSection');
+        if (!loadTextSection) {
+            console.error('loadTextSection element not found!');
+            return;
+        }
         
         if (source === 'load') {
+            console.log('Setting loadTextSection to visible');
             loadTextSection.style.display = 'block';
+            
             // Check if we have book/chapter selected and can load text
             const book = document.getElementById('bibleBook').value;
             const chapter = document.getElementById('chapter').value;
-            if (book && chapter) {
-                document.getElementById('loadChapterTextBtn').disabled = false;
+            console.log('Current book/chapter:', book, chapter);
+            
+            const loadBtn = document.getElementById('loadChapterTextBtn');
+            if (loadBtn) {
+                if (book && chapter) {
+                    loadBtn.disabled = false;
+                    console.log('Load button enabled');
+                } else {
+                    loadBtn.disabled = true;
+                    console.log('Load button disabled - no book/chapter selected');
+                }
             } else {
-                document.getElementById('loadChapterTextBtn').disabled = true;
+                console.error('loadChapterTextBtn element not found!');
             }
         } else {
+            console.log('Setting loadTextSection to hidden');
             loadTextSection.style.display = 'none';
+            
             // For custom text, clear the content and allow user to write
-            document.getElementById('chapterContent').value = '';
-            document.getElementById('chapterIntroduction').value = '';
+            const chapterContent = document.getElementById('chapterContent');
+            const chapterIntroduction = document.getElementById('chapterIntroduction');
+            
+            if (chapterContent) chapterContent.value = '';
+            if (chapterIntroduction) chapterIntroduction.value = '';
+            
             this.updateTextStats();
+            console.log('Custom text mode initialized');
         }
     }
 
