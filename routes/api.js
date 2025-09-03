@@ -67,11 +67,11 @@ router.get('/health', (req, res) => {
  */
 router.get('/bible/books', (req, res) => {
     try {
-        const books = bibleBookData.getAllBooks();
+        const books = await bibleService.getBibleBooks();
         res.json({
             success: true,
             books: books,
-            bookNames: bibleBookData.getBookNames()
+            bookNames: books.map(book => book.name)
         });
     } catch (error) {
         res.status(500).json({
@@ -84,20 +84,22 @@ router.get('/bible/books', (req, res) => {
 /**
  * GET /api/bible/validate/:book/:chapter - Validate book/chapter combination
  */
-router.get('/bible/validate/:book/:chapter', (req, res) => {
+router.get('/bible/validate/:book/:chapter', async (req, res) => {
     try {
         const { book, chapter } = req.params;
         const chapterNum = parseInt(chapter);
         
-        const validation = bibleBookData.validateChapter(book, chapterNum);
+        const isValid = bibleService.validateReference(book, chapterNum);
+        const books = await bibleService.getBibleBooks();
+        const bookData = books.find(b => b.id === book.toUpperCase());
         
         res.json({
             success: true,
-            valid: validation.valid,
+            valid: isValid,
             book: book,
             chapter: chapterNum,
-            maxChapters: bibleBookData.getChapterCount(book),
-            message: validation.message || validation.error
+            maxChapters: bookData ? bookData.chapters : null,
+            message: isValid ? 'Valid reference' : 'Invalid reference'
         });
     } catch (error) {
         res.status(500).json({
@@ -139,17 +141,7 @@ router.get('/config', async (req, res) => {
     }
 });
 
-/**
- * GET /api/bible/books - Get list of Bible books
- */
-router.get('/bible/books', (req, res) => {
-    try {
-        const books = bibleService.getBibleBooks();
-        res.json({ books });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+
 
 /**
  * GET /api/bible/versions - Get supported Bible versions
@@ -590,8 +582,8 @@ async function processTranscriptionInBackground(jobId, params, context = null) {
             type: 'progress',
             step: 'fetch_text',
             progress: 5,
-            message: `Fetching ${book} ${chapter} (${version}) from BibleGateway...`,
-            details: 'Downloading chapter text and cleaning verse numbers'
+            message: `Fetching ${book} ${chapter} (${version}) from local Bible data...`,
+            details: 'Reading chapter text from local JSON files'
         }, context);
 
         const textResult = await bibleService.fetchChapter(book, chapter, version);
