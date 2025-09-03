@@ -16,7 +16,7 @@
 
 ### External APIs
 - **Fish.Audio TTS API**: Custom voice text-to-speech synthesis
-- **BibleGateway**: Web scraping for Bible text retrieval
+- **Local Bible Data**: Direct file access for Bible text retrieval
 
 ## Architecture Patterns
 

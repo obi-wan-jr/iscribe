@@ -1,6 +1,6 @@
 # 🎵 tScribe
 
-A web application that converts Bible chapters into high-quality audio using Fish.Audio's custom voice TTS API. Fetches passages from BibleGateway, processes text to remove verse numbers, and creates seamless audio files for enhanced listening experience.
+A web application that converts Bible chapters into high-quality audio using Fish.Audio's custom voice TTS API. Fetches passages from local Bible data, processes text to remove verse numbers, and creates seamless audio files for enhanced listening experience.
 
 ## Features
 
@@ -127,7 +127,7 @@ tScribe/
 ├── routes/                # API routes
 │   └── api.js
 ├── services/              # Business logic services
-│   ├── bibleGatewayService.js    # BibleGateway scraping
+│   ├── localBibleService.js      # Local Bible data access
 │   ├── fishAudioService.js       # Fish.Audio TTS integration
 │   └── audioProcessingService.js # FFmpeg audio processing
 ├── public/                # Frontend files
@@ -151,7 +151,7 @@ tScribe/
 - Check that your Fish.Audio account has API access
 
 **"Could not find passage text"**
-- BibleGateway structure may have changed
+- Local Bible data structure may have changed
 - Try a different Bible version
 - Check internet connection
 
@@ -167,7 +167,7 @@ Check the server console for detailed error messages and processing logs.
 ## Development
 
 ### Adding New Bible Sources
-Extend `bibleGatewayService.js` to support additional sources or modify scraping logic.
+Extend `localBibleService.js` to support additional Bible versions or modify data access logic.
 
 ### Custom Audio Processing
 Modify `audioProcessingService.js` to change audio quality, format, or processing options.

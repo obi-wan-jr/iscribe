@@ -1,7 +1,7 @@
 # tScribe Project Brief
 
 ## Project Overview
-tScribe is a web application that automates the conversion of Bible chapters into high-quality audio using Fish.Audio's custom voice TTS API. The application fetches passages from BibleGateway's web content, processes the text to remove verse numbers, and creates seamless audio files for enhanced listening experience.
+tScribe is a web application that automates the conversion of Bible chapters into high-quality audio using Fish.Audio's custom voice TTS API. The application fetches passages from local Bible data, processes the text to remove verse numbers, and creates seamless audio files for enhanced listening experience.
 
 ## Core Objectives
 - **Automated Bible Audio Creation**: Convert any Bible chapter to audio without manual intervention
@@ -11,7 +11,7 @@ tScribe is a web application that automates the conversion of Bible chapters int
 - **Raspberry Pi Deployment**: Lightweight application suitable for self-hosting
 
 ## Key Requirements
-- Fetch Bible text from BibleGateway via web scraping
+- Fetch Bible text from local Bible data files
 - Strip verse numbers and formatting artifacts
 - Chunk text appropriately for Fish.Audio API limits (~4,500 characters)
 - Synthesize audio per chunk and merge into single MP3 per chapter
@@ -24,7 +24,7 @@ tScribe is a web application that automates the conversion of Bible chapters int
 - Must run efficiently on Raspberry Pi hardware
 - Single-user application (no authentication required)
 - Local file storage only
-- Web scraping with respectful rate limiting
+- Local file access with direct JSON parsing
 - Default Fish.Audio audio quality settings
 
 ## Success Criteria

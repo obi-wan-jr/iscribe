@@ -9,7 +9,7 @@
 - ✅ **Environment Configuration**: Template and configuration management
 
 ### Phase 2: Core Backend Services  
-- ✅ **BibleGateway Scraper Service**: 
+- ✅ **Local Bible Data Service**: 
   - Web scraping with Cheerio and Axios
   - Verse number removal and text cleaning
   - Support for multiple Bible versions
@@ -82,10 +82,10 @@
 ## Known Limitations & Considerations
 
 1. **FFmpeg Dependency**: Requires manual installation on target system
-2. **Rate Limiting**: Respectful delays implemented for BibleGateway scraping
+2. **Local Data Access**: Direct JSON file reading for fast, reliable Bible text access
 3. **Storage**: Local file storage only (suitable for Raspberry Pi deployment)
 4. **Single User**: No authentication system (per requirements)
-5. **Network Dependent**: Requires internet for BibleGateway and Fish.Audio API calls
+5. **Network Dependent**: Requires internet for Fish.Audio API calls only
 
 ## Next Steps for Deployment 🎯
 
@@ -106,7 +106,7 @@ tScribe/                 ✅ Complete
 ├── memory-bank/          ✅ Project documentation
 ├── routes/api.js         ✅ All API endpoints
 ├── services/             ✅ All business logic
-│   ├── bibleGatewayService.js    ✅ Text fetching
+│   ├── localBibleService.js      ✅ Text fetching
 │   ├── fishAudioService.js       ✅ TTS integration  
 │   └── audioProcessingService.js ✅ Audio merging
 ├── public/               ✅ Complete web interface
