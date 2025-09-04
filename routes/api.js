@@ -453,7 +453,8 @@ router.post('/transcribe', async (req, res) => {
                 backgroundImagePath,
                 fishApiKey,
                 voiceModelId,
-                transcribeFullBook
+                transcribeFullBook,
+                manualOverride
             }
         });
 
