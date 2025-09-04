@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Test Suite - Manual Override Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .test-result.pass {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .test-result.fail {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .test-result.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .test-result.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn.secondary {
+            background: #6c757d;
+        }
+        
+        .btn.secondary:hover {
+            background: #545b62;
+        }
+        
+        .test-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .element-info {
+            background: #e9ecef;
+            padding: 5px 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        
+        .iframe-container {
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .iframe-container iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 UI Test Suite - Manual Override Interface</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Element Existence and Accessibility</h2>
+        <div id="elementTests"></div>
+        <button class="btn" onclick="testElementExistence()">Test Element Existence</button>
+        <button class="btn secondary" onclick="clearElementTests()">Clear Results</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: CSS Styling and Layout</h2>
+        <div id="stylingTests"></div>
+        <button class="btn" onclick="testCSSStyling()">Test CSS Styling</button>
+        <button class="btn secondary" onclick="clearStylingTests()">Clear Results</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Interactive Behavior</h2>
+        <div id="interactionTests"></div>
+        <button class="btn" onclick="testInteractions()">Test Interactions</button>
+        <button class="btn secondary" onclick="clearInteractionTests()">Clear Results</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 4: Text Area Sizing</h2>
+        <div id="sizingTests"></div>
+        <button class="btn" onclick="testTextAreaSizing()">Test Text Area Sizing</button>
+        <button class="btn secondary" onclick="clearSizingTests()">Clear Results</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 5: Live Application Test</h2>
+        <p>Testing the actual tScribe application interface:</p>
+        <div class="iframe-container">
+            <iframe id="liveApp" src="http://meatpi:3003" title="tScribe Application"></iframe>
+        </div>
+        <div id="liveAppTests"></div>
+        <button class="btn" onclick="testLiveApplication()">Test Live Application</button>
+        <button class="btn secondary" onclick="clearLiveAppTests()">Clear Results</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Summary</h2>
+        <div id="testSummary"></div>
+        <button class="btn" onclick="runAllUITests()">Run All UI Tests</button>
+    </div>
+
+    <script>
+        let uiTestResults = {
+            elementExistence: null,
+            cssStyling: null,
+            interactions: null,
+            textAreaSizing: null,
+            liveApplication: null
+        };
+        
+        // Test 1: Element Existence and Accessibility
+        function testElementExistence() {
+            const results = document.getElementById('elementTests');
+            results.innerHTML = '';
+            
+            const requiredElements = [
+                'enableManualOverride',
+                'manualOverrideInterface',
+                'chapterIntroduction',
+                'chapterContent',
+                'maxSentencesOverride',
+                'ttsSpeed',
+                'loadChapterTextBtn',
+                'formatBold',
+                'formatItalic',
+                'formatUnderline',
+                'addPause',
+                'addLongPause',
+                'resetText',
+                'previewText'
+            ];
+            
+            let tests = [];
+            let foundElements = [];
+            let missingElements = [];
+            
+            // Test if we can access the live application
+            try {
+                const iframe = document.getElementById('liveApp');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                if (iframeDoc) {
+                    requiredElements.forEach(elementId => {
+                        const element = iframeDoc.getElementById(elementId);
+                        if (element) {
+                            foundElements.push(elementId);
+                            tests.push({
+                                name: `Element: ${elementId}`,
+                                result: 'pass',
+                                message: 'Element found and accessible'
+                            });
+                        } else {
+                            missingElements.push(elementId);
+                            tests.push({
+                                name: `Element: ${elementId}`,
+                                result: 'fail',
+                                message: 'Element not found'
+                            });
+                        }
+                    });
+                } else {
+                    tests.push({
+                        name: 'Iframe Access',
+                        result: 'fail',
+                        message: 'Cannot access iframe content (CORS or loading issue)'
+                    });
+                }
+            } catch (error) {
+                tests.push({
+                    name: 'Iframe Access',
+                    result: 'fail',
+                    message: `Error accessing iframe: ${error.message}`
+                });
+            }
+            
+            // Display results
+            tests.forEach(test => {
+                const div = document.createElement('div');
+                div.className = `test-result ${test.result}`;
+                div.innerHTML = `<strong>${test.name}:</strong> ${test.message}`;
+                results.appendChild(div);
+            });
+            
+            // Summary
+            const summary = document.createElement('div');
+            summary.className = `test-result ${missingElements.length === 0 ? 'pass' : 'fail'}`;
+            summary.innerHTML = `<strong>Summary:</strong> Found ${foundElements.length}/${requiredElements.length} required elements`;
+            results.appendChild(summary);
+            
+            // Store result
+            const passed = tests.filter(t => t.result === 'pass').length;
+            const total = tests.length;
+            uiTestResults.elementExistence = { passed, total, tests };
+            
+            updateTestSummary();
+        }
+        
+        // Test 2: CSS Styling and Layout
+        function testCSSStyling() {
+            const results = document.getElementById('stylingTests');
+            results.innerHTML = '';
+            
+            let tests = [];
+            
+            try {
+                const iframe = document.getElementById('liveApp');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                if (iframeDoc) {
+                    // Test text area styling
+                    const textArea = iframeDoc.getElementById('chapterContent');
+                    if (textArea) {
+                        const computedStyle = iframeDoc.defaultView.getComputedStyle(textArea);
+                        
+                        // Check height
+                        const height = parseInt(computedStyle.height);
+                        if (height >= 400) {
+                            tests.push({
+                                name: 'Text Area Height',
+                                result: 'pass',
+                                message: `Height: ${height}px (>= 400px)`
+                            });
+                        } else {
+                            tests.push({
+                                name: 'Text Area Height',
+                                result: 'fail',
+                                message: `Height: ${height}px (< 400px)`
+                            });
+                        }
+                        
+                        // Check min-height
+                        const minHeight = parseInt(computedStyle.minHeight);
+                        if (minHeight >= 400) {
+                            tests.push({
+                                name: 'Text Area Min-Height',
+                                result: 'pass',
+                                message: `Min-height: ${minHeight}px (>= 400px)`
+                            });
+                        } else {
+                            tests.push({
+                                name: 'Text Area Min-Height',
+                                result: 'fail',
+                                message: `Min-height: ${minHeight}px (< 400px)`
+                            });
+                        }
+                        
+                        // Check if text area is visible
+                        const display = computedStyle.display;
+                        const visibility = computedStyle.visibility;
+                        if (display !== 'none' && visibility !== 'hidden') {
+                            tests.push({
+                                name: 'Text Area Visibility',
+                                result: 'pass',
+                                message: 'Text area is visible'
+                            });
+                        } else {
+                            tests.push({
+                                name: 'Text Area Visibility',
+                                result: 'fail',
+                                message: `Text area is hidden (display: ${display}, visibility: ${visibility})`
+                            });
+                        }
+                    } else {
+                        tests.push({
+                            name: 'Text Area Element',
+                            result: 'fail',
+                            message: 'Text area element not found'
+                        });
+                    }
+                    
+                    // Test manual override interface visibility
+                    const overrideInterface = iframeDoc.getElementById('manualOverrideInterface');
+                    if (overrideInterface) {
+                        const overrideStyle = iframeDoc.defaultView.getComputedStyle(overrideInterface);
+                        const display = overrideStyle.display;
+                        
+                        if (display === 'none') {
+                            tests.push({
+                                name: 'Manual Override Interface',
+                                result: 'info',
+                                message: 'Interface is hidden (expected when not enabled)'
+                            });
+                        } else {
+                            tests.push({
+                                name: 'Manual Override Interface',
+                                result: 'pass',
+                                message: 'Interface is visible'
+                            });
+                        }
+                    } else {
+                        tests.push({
+                            name: 'Manual Override Interface',
+                            result: 'fail',
+                            message: 'Manual override interface not found'
+                        });
+                    }
+                } else {
+                    tests.push({
+                        name: 'Iframe Access',
+                        result: 'fail',
+                        message: 'Cannot access iframe content for styling tests'
+                    });
+                }
+            } catch (error) {
+                tests.push({
+                    name: 'CSS Styling Test',
+                    result: 'fail',
+                    message: `Error: ${error.message}`
+                });
+            }
+            
+            // Display results
+            tests.forEach(test => {
+                const div = document.createElement('div');
+                div.className = `test-result ${test.result}`;
+                div.innerHTML = `<strong>${test.name}:</strong> ${test.message}`;
+                results.appendChild(div);
+            });
+            
+            // Store result
+            const passed = tests.filter(t => t.result === 'pass').length;
+            const total = tests.length;
+            uiTestResults.cssStyling = { passed, total, tests };
+            
+            updateTestSummary();
+        }
+        
+        // Test 3: Interactive Behavior
+        function testInteractions() {
+            const results = document.getElementById('interactionTests');
+            results.innerHTML = '';
+            
+            let tests = [];
+            
+            try {
+                const iframe = document.getElementById('liveApp');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                if (iframeDoc) {
+                    // Test checkbox interaction
+                    const checkbox = iframeDoc.getElementById('enableManualOverride');
+                    if (checkbox) {
+                        // Test initial state
+                        const initialChecked = checkbox.checked;
+                        tests.push({
+                            name: 'Checkbox Initial State',
+                            result: 'info',
+                            message: `Initial state: ${initialChecked ? 'checked' : 'unchecked'}`
+                        });
+                        
+                        // Test clicking checkbox
+                        checkbox.click();
+                        const afterClick = checkbox.checked;
+                        tests.push({
+                            name: 'Checkbox Click',
+                            result: 'pass',
+                            message: `After click: ${afterClick ? 'checked' : 'unchecked'}`
+                        });
+                        
+                        // Test if interface becomes visible
+                        const interface = iframeDoc.getElementById('manualOverrideInterface');
+                        if (interface) {
+                            const interfaceStyle = iframeDoc.defaultView.getComputedStyle(interface);
+                            const isVisible = interfaceStyle.display !== 'none';
+                            
+                            if (afterClick && isVisible) {
+                                tests.push({
+                                    name: 'Interface Visibility Toggle',
+                                    result: 'pass',
+                                    message: 'Interface becomes visible when enabled'
+                                });
+                            } else if (!afterClick && !isVisible) {
+                                tests.push({
+                                    name: 'Interface Visibility Toggle',
+                                    result: 'pass',
+                                    message: 'Interface is hidden when disabled'
+                                });
+                            } else {
+                                tests.push({
+                                    name: 'Interface Visibility Toggle',
+                                    result: 'fail',
+                                    message: 'Interface visibility does not match checkbox state'
+                                });
+                            }
+                        }
+                        
+                        // Reset checkbox
+                        checkbox.click();
+                    } else {
+                        tests.push({
+                            name: 'Checkbox Element',
+                            result: 'fail',
+                            message: 'Enable manual override checkbox not found'
+                        });
+                    }
+                    
+                    // Test text area interaction
+                    const textArea = iframeDoc.getElementById('chapterContent');
+                    if (textArea) {
+                        // Test if text area is editable
+                        if (!textArea.readOnly && !textArea.disabled) {
+                            tests.push({
+                                name: 'Text Area Editability',
+                                result: 'pass',
+                                message: 'Text area is editable'
+                            });
+                        } else {
+                            tests.push({
+                                name: 'Text Area Editability',
+                                result: 'fail',
+                                message: 'Text area is not editable'
+                            });
+                        }
+                        
+                        // Test text input
+                        const testText = 'Test text input for manual override';
+                        textArea.value = testText;
+                        textArea.dispatchEvent(new Event('input', { bubbles: true }));
+                        
+                        if (textArea.value === testText) {
+                            tests.push({
+                                name: 'Text Area Input',
+                                result: 'pass',
+                                message: 'Text can be entered into text area'
+                            });
+                        } else {
+                            tests.push({
+                                name: 'Text Area Input',
+                                result: 'fail',
+                                message: 'Text input failed'
+                            });
+                        }
+                    } else {
+                        tests.push({
+                            name: 'Text Area Element',
+                            result: 'fail',
+                            message: 'Chapter content text area not found'
+                        });
+                    }
+                } else {
+                    tests.push({
+                        name: 'Iframe Access',
+                        result: 'fail',
+                        message: 'Cannot access iframe content for interaction tests'
+                    });
+                }
+            } catch (error) {
+                tests.push({
+                    name: 'Interaction Test',
+                    result: 'fail',
+                    message: `Error: ${error.message}`
+                });
+            }
+            
+            // Display results
+            tests.forEach(test => {
+                const div = document.createElement('div');
+                div.className = `test-result ${test.result}`;
+                div.innerHTML = `<strong>${test.name}:</strong> ${test.message}`;
+                results.appendChild(div);
+            });
+            
+            // Store result
+            const passed = tests.filter(t => t.result === 'pass').length;
+            const total = tests.length;
+            uiTestResults.interactions = { passed, total, tests };
+            
+            updateTestSummary();
+        }
+        
+        // Test 4: Text Area Sizing
+        function testTextAreaSizing() {
+            const results = document.getElementById('sizingTests');
+            results.innerHTML = '';
+            
+            let tests = [];
+            
+            try {
+                const iframe = document.getElementById('liveApp');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                if (iframeDoc) {
+                    const textArea = iframeDoc.getElementById('chapterContent');
+                    if (textArea) {
+                        const rect = textArea.getBoundingClientRect();
+                        const computedStyle = iframeDoc.defaultView.getComputedStyle(textArea);
+                        
+                        // Test actual dimensions
+                        tests.push({
+                            name: 'Text Area Width',
+                            result: rect.width > 300 ? 'pass' : 'warning',
+                            message: `Width: ${Math.round(rect.width)}px`
+                        });
+                        
+                        tests.push({
+                            name: 'Text Area Height',
+                            result: rect.height >= 400 ? 'pass' : 'fail',
+                            message: `Height: ${Math.round(rect.height)}px (target: >= 400px)`
+                        });
+                        
+                        // Test computed styles
+                        const height = parseInt(computedStyle.height);
+                        const minHeight = parseInt(computedStyle.minHeight);
+                        
+                        tests.push({
+                            name: 'Computed Height',
+                            result: height >= 400 ? 'pass' : 'fail',
+                            message: `Computed height: ${height}px`
+                        });
+                        
+                        tests.push({
+                            name: 'Computed Min-Height',
+                            result: minHeight >= 400 ? 'pass' : 'fail',
+                            message: `Computed min-height: ${minHeight}px`
+                        });
+                        
+                        // Test rows attribute
+                        const rows = textArea.rows;
+                        tests.push({
+                            name: 'Rows Attribute',
+                            result: rows >= 20 ? 'pass' : 'warning',
+                            message: `Rows: ${rows} (target: >= 20)`
+                        });
+                        
+                        // Test if text area can display content properly
+                        const testContent = 'This is a test line.\n'.repeat(25);
+                        textArea.value = testContent;
+                        
+                        // Check if scrollbar appears (indicating content overflow)
+                        const hasScrollbar = textArea.scrollHeight > textArea.clientHeight;
+                        tests.push({
+                            name: 'Content Display',
+                            result: hasScrollbar ? 'info' : 'pass',
+                            message: hasScrollbar ? 'Scrollbar present (content overflows)' : 'All content visible without scrollbar'
+                        });
+                        
+                    } else {
+                        tests.push({
+                            name: 'Text Area Element',
+                            result: 'fail',
+                            message: 'Text area element not found'
+                        });
+                    }
+                } else {
+                    tests.push({
+                        name: 'Iframe Access',
+                        result: 'fail',
+                        message: 'Cannot access iframe content for sizing tests'
+                    });
+                }
+            } catch (error) {
+                tests.push({
+                    name: 'Text Area Sizing Test',
+                    result: 'fail',
+                    message: `Error: ${error.message}`
+                });
+            }
+            
+            // Display results
+            tests.forEach(test => {
+                const div = document.createElement('div');
+                div.className = `test-result ${test.result}`;
+                div.innerHTML = `<strong>${test.name}:</strong> ${test.message}`;
+                results.appendChild(div);
+            });
+            
+            // Store result
+            const passed = tests.filter(t => t.result === 'pass').length;
+            const total = tests.length;
+            uiTestResults.textAreaSizing = { passed, total, tests };
+            
+            updateTestSummary();
+        }
+        
+        // Test 5: Live Application Test
+        function testLiveApplication() {
+            const results = document.getElementById('liveAppTests');
+            results.innerHTML = '';
+            
+            let tests = [];
+            
+            try {
+                const iframe = document.getElementById('liveApp');
+                
+                // Test if iframe loads
+                if (iframe.contentDocument) {
+                    tests.push({
+                        name: 'Application Load',
+                        result: 'pass',
+                        message: 'tScribe application loaded successfully'
+                    });
+                    
+                    // Test if manual override section exists
+                    const iframeDoc = iframe.contentDocument;
+                    const overrideSection = iframeDoc.querySelector('.advanced-tts-section');
+                    if (overrideSection) {
+                        tests.push({
+                            name: 'Manual Override Section',
+                            result: 'pass',
+                            message: 'Advanced TTS section found'
+                        });
+                    } else {
+                        tests.push({
+                            name: 'Manual Override Section',
+                            result: 'fail',
+                            message: 'Advanced TTS section not found'
+                        });
+                    }
+                    
+                    // Test if text area is properly sized
+                    const textArea = iframeDoc.getElementById('chapterContent');
+                    if (textArea) {
+                        const rect = textArea.getBoundingClientRect();
+                        if (rect.height >= 400) {
+                            tests.push({
+                                name: 'Text Area Size',
+                                result: 'pass',
+                                message: `Text area height: ${Math.round(rect.height)}px`
+                            });
+                        } else {
+                            tests.push({
+                                name: 'Text Area Size',
+                                result: 'fail',
+                                message: `Text area height: ${Math.round(rect.height)}px (too small)`
+                            });
+                        }
+                    } else {
+                        tests.push({
+                            name: 'Text Area Element',
+                            result: 'fail',
+                            message: 'Chapter content text area not found'
+                        });
+                    }
+                    
+                } else {
+                    tests.push({
+                        name: 'Application Load',
+                        result: 'fail',
+                        message: 'tScribe application failed to load'
+                    });
+                }
+            } catch (error) {
+                tests.push({
+                    name: 'Live Application Test',
+                    result: 'fail',
+                    message: `Error: ${error.message}`
+                });
+            }
+            
+            // Display results
+            tests.forEach(test => {
+                const div = document.createElement('div');
+                div.className = `test-result ${test.result}`;
+                div.innerHTML = `<strong>${test.name}:</strong> ${test.message}`;
+                results.appendChild(div);
+            });
+            
+            // Store result
+            const passed = tests.filter(t => t.result === 'pass').length;
+            const total = tests.length;
+            uiTestResults.liveApplication = { passed, total, tests };
+            
+            updateTestSummary();
+        }
+        
+        function updateTestSummary() {
+            const summary = document.getElementById('testSummary');
+            const totalTests = Object.values(uiTestResults).filter(r => r !== null).length;
+            const passedTests = Object.values(uiTestResults).filter(r => r && r.passed > 0).length;
+            
+            if (totalTests > 0) {
+                summary.innerHTML = `
+                    <div class="test-result ${passedTests === totalTests ? 'pass' : 'info'}">
+                        <strong>UI Test Summary:</strong> ${passedTests}/${totalTests} test suites completed
+                    </div>
+                `;
+            }
+        }
+        
+        function runAllUITests() {
+            testElementExistence();
+            testCSSStyling();
+            testInteractions();
+            testTextAreaSizing();
+            testLiveApplication();
+        }
+        
+        // Clear functions
+        function clearElementTests() {
+            document.getElementById('elementTests').innerHTML = '';
+            uiTestResults.elementExistence = null;
+            updateTestSummary();
+        }
+        
+        function clearStylingTests() {
+            document.getElementById('stylingTests').innerHTML = '';
+            uiTestResults.cssStyling = null;
+            updateTestSummary();
+        }
+        
+        function clearInteractionTests() {
+            document.getElementById('interactionTests').innerHTML = '';
+            uiTestResults.interactions = null;
+            updateTestSummary();
+        }
+        
+        function clearSizingTests() {
+            document.getElementById('sizingTests').innerHTML = '';
+            uiTestResults.textAreaSizing = null;
+            updateTestSummary();
+        }
+        
+        function clearLiveAppTests() {
+            document.getElementById('liveAppTests').innerHTML = '';
+            uiTestResults.liveApplication = null;
+            updateTestSummary();
+        }
+    </script>
+</body>
+</html>

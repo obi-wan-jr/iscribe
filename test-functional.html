@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Functional Test Suite - Manual Override</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .test-result.pass {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .test-result.fail {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .test-result.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .form-group {
+            margin: 15px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn.secondary {
+            background: #6c757d;
+        }
+        
+        .btn.secondary:hover {
+            background: #545b62;
+        }
+        
+        .test-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Functional Test Suite - Manual Override</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Form Validation</h2>
+        <div id="formValidationResults"></div>
+        
+        <div class="form-group">
+            <label>Bible Book:</label>
+            <select id="testBibleBook">
+                <option value="">Select a book</option>
+                <option value="GEN">Genesis</option>
+                <option value="EXO">Exodus</option>
+                <option value="LEV">Leviticus</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Chapter:</label>
+            <input type="number" id="testChapter" min="1" max="50" placeholder="Enter chapter number">
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="testEnableManualOverride">
+                Enable Manual Override
+            </label>
+        </div>
+        
+        <div id="manualOverrideFields" style="display: none;">
+            <div class="form-group">
+                <label>Introduction Text:</label>
+                <input type="text" id="testIntroduction" placeholder="Custom introduction text">
+            </div>
+            
+            <div class="form-group">
+                <label>Content Text:</label>
+                <textarea id="testContent" placeholder="Enter your custom text content"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Max Sentences:</label>
+                <input type="number" id="testMaxSentences" min="1" max="20" value="5">
+            </div>
+        </div>
+        
+        <button class="btn" onclick="testFormValidation()">Test Form Validation</button>
+        <button class="btn secondary" onclick="clearFormValidationResults()">Clear Results</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: API Request Simulation</h2>
+        <div id="apiRequestResults"></div>
+        
+        <button class="btn" onclick="testAPIRequest()">Test API Request</button>
+        <button class="btn secondary" onclick="clearAPIResults()">Clear Results</button>
+        
+        <div class="test-log" id="apiRequestLog"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Data Transmission</h2>
+        <div id="dataTransmissionResults"></div>
+        
+        <button class="btn" onclick="testDataTransmission()">Test Data Transmission</button>
+        <button class="btn secondary" onclick="clearDataResults()">Clear Results</button>
+        
+        <div class="test-log" id="dataTransmissionLog"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 4: End-to-End Workflow</h2>
+        <div id="workflowResults"></div>
+        
+        <button class="btn" onclick="testEndToEndWorkflow()">Test End-to-End Workflow</button>
+        <button class="btn secondary" onclick="clearWorkflowResults()">Clear Results</button>
+        
+        <div class="test-log" id="workflowLog"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Summary</h2>
+        <div id="testSummary"></div>
+        <button class="btn" onclick="runAllTests()">Run All Tests</button>
+    </div>
+
+    <script>
+        let testResults = {
+            formValidation: null,
+            apiRequest: null,
+            dataTransmission: null,
+            workflow: null
+        };
+        
+        // Test 1: Form Validation
+        function testFormValidation() {
+            const results = document.getElementById('formValidationResults');
+            results.innerHTML = '';
+            
+            const book = document.getElementById('testBibleBook').value;
+            const chapter = document.getElementById('testChapter').value;
+            const enableOverride = document.getElementById('testEnableManualOverride').checked;
+            const introduction = document.getElementById('testIntroduction').value;
+            const content = document.getElementById('testContent').value;
+            const maxSentences = document.getElementById('testMaxSentences').value;
+            
+            let tests = [];
+            
+            // Test 1.1: Basic form validation
+            if (!book) {
+                tests.push({ name: 'Book Selection', result: 'fail', message: 'No book selected' });
+            } else {
+                tests.push({ name: 'Book Selection', result: 'pass', message: `Book selected: ${book}` });
+            }
+            
+            if (!chapter || chapter < 1) {
+                tests.push({ name: 'Chapter Validation', result: 'fail', message: 'Invalid chapter number' });
+            } else {
+                tests.push({ name: 'Chapter Validation', result: 'pass', message: `Chapter: ${chapter}` });
+            }
+            
+            // Test 1.2: Manual override validation
+            if (enableOverride) {
+                if (!content.trim()) {
+                    tests.push({ name: 'Manual Override Content', result: 'fail', message: 'No content provided for manual override' });
+                } else {
+                    tests.push({ name: 'Manual Override Content', result: 'pass', message: `Content length: ${content.length} characters` });
+                }
+                
+                if (maxSentences && (maxSentences < 1 || maxSentences > 20)) {
+                    tests.push({ name: 'Max Sentences Validation', result: 'fail', message: 'Invalid max sentences value' });
+                } else {
+                    tests.push({ name: 'Max Sentences Validation', result: 'pass', message: `Max sentences: ${maxSentences || 'default'}` });
+                }
+            } else {
+                tests.push({ name: 'Manual Override', result: 'info', message: 'Manual override disabled' });
+            }
+            
+            // Display results
+            tests.forEach(test => {
+                const div = document.createElement('div');
+                div.className = `test-result ${test.result}`;
+                div.innerHTML = `<strong>${test.name}:</strong> ${test.message}`;
+                results.appendChild(div);
+            });
+            
+            // Store result
+            const passed = tests.filter(t => t.result === 'pass').length;
+            const total = tests.length;
+            testResults.formValidation = { passed, total, tests };
+            
+            updateTestSummary();
+        }
+        
+        // Test 2: API Request Simulation
+        function testAPIRequest() {
+            const results = document.getElementById('apiRequestResults');
+            const log = document.getElementById('apiRequestLog');
+            results.innerHTML = '';
+            log.innerHTML = '';
+            
+            const book = document.getElementById('testBibleBook').value;
+            const chapter = document.getElementById('testChapter').value;
+            const enableOverride = document.getElementById('testEnableManualOverride').checked;
+            const introduction = document.getElementById('testIntroduction').value;
+            const content = document.getElementById('testContent').value;
+            const maxSentences = document.getElementById('testMaxSentences').value;
+            
+            if (!book || !chapter) {
+                results.innerHTML = '<div class="test-result fail">Please fill in book and chapter first</div>';
+                return;
+            }
+            
+            // Simulate the API request payload
+            const payload = {
+                book: book,
+                chapter: parseInt(chapter),
+                version: 'WEB',
+                maxSentences: 5,
+                excludeVerseNumbers: true,
+                createVideo: false,
+                transcribeFullBook: false
+            };
+            
+            if (enableOverride) {
+                payload.manualOverride = {
+                    enabled: true,
+                    introduction: introduction || `${getBookDisplayName(book)}, Chapter ${chapter}`,
+                    content: content,
+                    maxSentences: maxSentences ? parseInt(maxSentences) : 5,
+                    ttsSpeed: 'normal'
+                };
+            }
+            
+            log.innerHTML += `API Request Payload:\n${JSON.stringify(payload, null, 2)}\n\n`;
+            
+            // Test payload structure
+            let tests = [];
+            
+            if (payload.book && payload.chapter) {
+                tests.push({ name: 'Basic Parameters', result: 'pass', message: 'Book and chapter provided' });
+            } else {
+                tests.push({ name: 'Basic Parameters', result: 'fail', message: 'Missing book or chapter' });
+            }
+            
+            if (enableOverride) {
+                if (payload.manualOverride && payload.manualOverride.enabled) {
+                    tests.push({ name: 'Manual Override Structure', result: 'pass', message: 'Manual override properly structured' });
+                    
+                    if (payload.manualOverride.content && payload.manualOverride.content.length > 0) {
+                        tests.push({ name: 'Override Content', result: 'pass', message: 'Content provided' });
+                    } else {
+                        tests.push({ name: 'Override Content', result: 'fail', message: 'No content in override' });
+                    }
+                } else {
+                    tests.push({ name: 'Manual Override Structure', result: 'fail', message: 'Manual override not properly structured' });
+                }
+            } else {
+                tests.push({ name: 'Manual Override', result: 'info', message: 'Manual override not enabled' });
+            }
+            
+            // Display results
+            tests.forEach(test => {
+                const div = document.createElement('div');
+                div.className = `test-result ${test.result}`;
+                div.innerHTML = `<strong>${test.name}:</strong> ${test.message}`;
+                results.appendChild(div);
+            });
+            
+            // Store result
+            const passed = tests.filter(t => t.result === 'pass').length;
+            const total = tests.length;
+            testResults.apiRequest = { passed, total, tests };
+            
+            updateTestSummary();
+        }
+        
+        // Test 3: Data Transmission
+        function testDataTransmission() {
+            const results = document.getElementById('dataTransmissionResults');
+            const log = document.getElementById('dataTransmissionLog');
+            results.innerHTML = '';
+            log.innerHTML = '';
+            
+            const enableOverride = document.getElementById('testEnableManualOverride').checked;
+            const content = document.getElementById('testContent').value;
+            
+            log.innerHTML += 'Testing data transmission...\n';
+            
+            // Simulate form validation function
+            const config = simulateValidateTranscriptionForm();
+            log.innerHTML += `Form validation result:\n${JSON.stringify(config, null, 2)}\n\n`;
+            
+            let tests = [];
+            
+            if (config) {
+                tests.push({ name: 'Form Validation', result: 'pass', message: 'Form validation successful' });
+                
+                if (enableOverride) {
+                    if (config.manualOverride && config.manualOverride.enabled) {
+                        tests.push({ name: 'Manual Override Detection', result: 'pass', message: 'Manual override detected in config' });
+                        
+                        if (config.manualOverride.content === content) {
+                            tests.push({ name: 'Content Transmission', result: 'pass', message: 'Content transmitted correctly' });
+                        } else {
+                            tests.push({ name: 'Content Transmission', result: 'fail', message: 'Content mismatch' });
+                        }
+                    } else {
+                        tests.push({ name: 'Manual Override Detection', result: 'fail', message: 'Manual override not detected' });
+                    }
+                } else {
+                    tests.push({ name: 'Manual Override', result: 'info', message: 'Manual override not enabled' });
+                }
+            } else {
+                tests.push({ name: 'Form Validation', result: 'fail', message: 'Form validation failed' });
+            }
+            
+            // Display results
+            tests.forEach(test => {
+                const div = document.createElement('div');
+                div.className = `test-result ${test.result}`;
+                div.innerHTML = `<strong>${test.name}:</strong> ${test.message}`;
+                results.appendChild(div);
+            });
+            
+            // Store result
+            const passed = tests.filter(t => t.result === 'pass').length;
+            const total = tests.length;
+            testResults.dataTransmission = { passed, total, tests };
+            
+            updateTestSummary();
+        }
+        
+        // Test 4: End-to-End Workflow
+        function testEndToEndWorkflow() {
+            const results = document.getElementById('workflowResults');
+            const log = document.getElementById('workflowLog');
+            results.innerHTML = '';
+            log.innerHTML = '';
+            
+            log.innerHTML += 'Testing end-to-end workflow...\n';
+            
+            // Step 1: Form validation
+            const config = simulateValidateTranscriptionForm();
+            if (!config) {
+                results.innerHTML = '<div class="test-result fail">Form validation failed</div>';
+                return;
+            }
+            
+            log.innerHTML += 'Step 1: Form validation passed\n';
+            
+            // Step 2: API request simulation
+            const apiPayload = {
+                ...config,
+                timestamp: new Date().toISOString()
+            };
+            
+            log.innerHTML += `Step 2: API payload prepared\n${JSON.stringify(apiPayload, null, 2)}\n\n`;
+            
+            // Step 3: Backend processing simulation
+            const backendResult = simulateBackendProcessing(apiPayload);
+            log.innerHTML += `Step 3: Backend processing result\n${JSON.stringify(backendResult, null, 2)}\n\n`;
+            
+            let tests = [];
+            
+            if (backendResult.success) {
+                tests.push({ name: 'Backend Processing', result: 'pass', message: 'Backend processing successful' });
+                
+                if (config.manualOverride && config.manualOverride.enabled) {
+                    if (backendResult.usedManualOverride) {
+                        tests.push({ name: 'Manual Override Applied', result: 'pass', message: 'Manual override was applied' });
+                    } else {
+                        tests.push({ name: 'Manual Override Applied', result: 'fail', message: 'Manual override was not applied' });
+                    }
+                } else {
+                    tests.push({ name: 'Default Processing', result: 'pass', message: 'Default processing used' });
+                }
+            } else {
+                tests.push({ name: 'Backend Processing', result: 'fail', message: backendResult.error });
+            }
+            
+            // Display results
+            tests.forEach(test => {
+                const div = document.createElement('div');
+                div.className = `test-result ${test.result}`;
+                div.innerHTML = `<strong>${test.name}:</strong> ${test.message}`;
+                results.appendChild(div);
+            });
+            
+            // Store result
+            const passed = tests.filter(t => t.result === 'pass').length;
+            const total = tests.length;
+            testResults.workflow = { passed, total, tests };
+            
+            updateTestSummary();
+        }
+        
+        // Helper functions
+        function getBookDisplayName(bookId) {
+            const bookSelect = document.getElementById('testBibleBook');
+            const option = bookSelect.querySelector(`option[value="${bookId}"]`);
+            return option ? option.textContent : bookId;
+        }
+        
+        function simulateValidateTranscriptionForm() {
+            const book = document.getElementById('testBibleBook').value;
+            const chapter = document.getElementById('testChapter').value;
+            const enableOverride = document.getElementById('testEnableManualOverride').checked;
+            const introduction = document.getElementById('testIntroduction').value;
+            const content = document.getElementById('testContent').value;
+            const maxSentences = document.getElementById('testMaxSentences').value;
+            
+            if (!book || !chapter) {
+                return null;
+            }
+            
+            const config = {
+                book: book,
+                chapter: parseInt(chapter),
+                version: 'WEB',
+                maxSentences: 5,
+                excludeVerseNumbers: true,
+                createVideo: false,
+                transcribeFullBook: false
+            };
+            
+            if (enableOverride && content.trim()) {
+                config.manualOverride = {
+                    enabled: true,
+                    introduction: introduction || `${getBookDisplayName(book)}, Chapter ${chapter}`,
+                    content: content,
+                    maxSentences: maxSentences ? parseInt(maxSentences) : 5,
+                    ttsSpeed: 'normal'
+                };
+            }
+            
+            return config;
+        }
+        
+        function simulateBackendProcessing(payload) {
+            // Simulate backend logic
+            if (payload.manualOverride && payload.manualOverride.enabled) {
+                return {
+                    success: true,
+                    usedManualOverride: true,
+                    processedText: payload.manualOverride.content,
+                    introduction: payload.manualOverride.introduction
+                };
+            } else {
+                return {
+                    success: true,
+                    usedManualOverride: false,
+                    processedText: "Default Bible text",
+                    introduction: `${getBookDisplayName(payload.book)}, Chapter ${payload.chapter}.`
+                };
+            }
+        }
+        
+        function updateTestSummary() {
+            const summary = document.getElementById('testSummary');
+            const totalTests = Object.values(testResults).filter(r => r !== null).length;
+            const passedTests = Object.values(testResults).filter(r => r && r.passed > 0).length;
+            
+            if (totalTests > 0) {
+                summary.innerHTML = `
+                    <div class="test-result ${passedTests === totalTests ? 'pass' : 'info'}">
+                        <strong>Test Summary:</strong> ${passedTests}/${totalTests} test suites completed
+                    </div>
+                `;
+            }
+        }
+        
+        function runAllTests() {
+            testFormValidation();
+            testAPIRequest();
+            testDataTransmission();
+            testEndToEndWorkflow();
+        }
+        
+        // Clear functions
+        function clearFormValidationResults() {
+            document.getElementById('formValidationResults').innerHTML = '';
+            testResults.formValidation = null;
+            updateTestSummary();
+        }
+        
+        function clearAPIResults() {
+            document.getElementById('apiRequestResults').innerHTML = '';
+            document.getElementById('apiRequestLog').innerHTML = '';
+            testResults.apiRequest = null;
+            updateTestSummary();
+        }
+        
+        function clearDataResults() {
+            document.getElementById('dataTransmissionResults').innerHTML = '';
+            document.getElementById('dataTransmissionLog').innerHTML = '';
+            testResults.dataTransmission = null;
+            updateTestSummary();
+        }
+        
+        function clearWorkflowResults() {
+            document.getElementById('workflowResults').innerHTML = '';
+            document.getElementById('workflowLog').innerHTML = '';
+            testResults.workflow = null;
+            updateTestSummary();
+        }
+        
+        // Toggle manual override fields
+        document.getElementById('testEnableManualOverride').addEventListener('change', function() {
+            const fields = document.getElementById('manualOverrideFields');
+            fields.style.display = this.checked ? 'block' : 'none';
+        });
+    </script>
+</body>
+</html>
