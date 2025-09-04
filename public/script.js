@@ -281,6 +281,17 @@ class AudibibleApp {
             this.addLogEntry('info', 'Starting Bible chapter transcription...');
             this.updateProgress(5, 'Initializing transcription job...');
             
+            // Debug: Log the complete config being sent
+            console.log('🔍 DEBUG: Complete config being sent to backend:', config);
+            console.log('🔍 DEBUG: Manual override data:', config.manualOverride);
+            if (config.manualOverride) {
+                console.log('🔍 DEBUG: Manual override enabled:', config.manualOverride.enabled);
+                console.log('🔍 DEBUG: Manual override content length:', config.manualOverride.content ? config.manualOverride.content.length : 'undefined');
+                console.log('🔍 DEBUG: Manual override introduction:', config.manualOverride.introduction);
+            } else {
+                console.log('🔍 DEBUG: No manual override data in config');
+            }
+            
             // Start transcription
             const response = await fetch(`${this.apiBase}/transcribe`, {
                 method: 'POST',
@@ -1639,9 +1650,13 @@ class AudibibleApp {
         };
 
         // Add manual override data if enabled
+        console.log('🔍 DEBUG: Manual override enabled check:', manualOverrideEnabled);
         if (manualOverrideEnabled) {
             const overrideContent = document.getElementById('chapterContent').value.trim();
             const overrideIntroduction = document.getElementById('chapterIntroduction').value.trim();
+            
+            console.log('🔍 DEBUG: Override content length:', overrideContent.length);
+            console.log('🔍 DEBUG: Override introduction:', overrideIntroduction);
             
             if (!overrideContent) {
                 alert('Please enter text content for manual override');
@@ -1656,6 +1671,10 @@ class AudibibleApp {
                     parseInt(document.getElementById('maxSentencesOverride').value) : 5,
                 ttsSpeed: document.getElementById('ttsSpeed').value
             };
+            
+            console.log('🔍 DEBUG: Manual override config created:', config.manualOverride);
+        } else {
+            console.log('🔍 DEBUG: Manual override not enabled, skipping override config');
         }
 
         return config;

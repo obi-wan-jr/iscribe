@@ -376,6 +376,9 @@ function sendProgress(jobId, data) {
  */
 router.post('/transcribe', async (req, res) => {
     try {
+        // Debug: Log the complete request body
+        console.log('🔍 DEBUG: Received transcription request body:', JSON.stringify(req.body, null, 2));
+        
         const {
             book,
             chapter,
@@ -386,7 +389,8 @@ router.post('/transcribe', async (req, res) => {
             excludeVerseNumbers = true,
             createVideo = false,
             backgroundImagePath = null,
-            transcribeFullBook = false
+            transcribeFullBook = false,
+            manualOverride
         } = req.body;
 
         // Use provided credentials or fall back to environment variables
@@ -604,9 +608,12 @@ async function processTranscriptionInBackground(jobId, params, context = null) {
         let maxSentencesValue = maxSentences ? parseInt(maxSentences) : 5;
         
         // Check for manual override
-        console.log('Manual override check:', params.manualOverride);
+        console.log('🔍 DEBUG: Manual override check:', params.manualOverride);
+        console.log('🔍 DEBUG: Full params object:', JSON.stringify(params, null, 2));
         if (params.manualOverride && params.manualOverride.enabled) {
-            console.log('Manual override enabled, using custom text');
+            console.log('🔍 DEBUG: Manual override enabled, using custom text');
+            console.log('🔍 DEBUG: Override content length:', params.manualOverride.content ? params.manualOverride.content.length : 'undefined');
+            console.log('🔍 DEBUG: Override introduction:', params.manualOverride.introduction);
             
             // Use manual override text instead of fetched text
             bibleText = params.manualOverride.content;
