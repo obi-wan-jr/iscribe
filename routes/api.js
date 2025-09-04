@@ -604,6 +604,7 @@ async function processTranscriptionInBackground(jobId, params, context = null) {
         let maxSentencesValue = maxSentences ? parseInt(maxSentences) : 5;
         
         // Check for manual override
+        console.log('Manual override check:', params.manualOverride);
         if (params.manualOverride && params.manualOverride.enabled) {
             console.log('Manual override enabled, using custom text');
             
@@ -657,11 +658,11 @@ async function processTranscriptionInBackground(jobId, params, context = null) {
 
         // Get introduction text (manual override or default)
         let introText;
+        const fullBookName = bibleService.getBookName(book); // Always get full book name for video overlay
         if (params.manualOverride && params.manualOverride.enabled && params.manualOverride.introduction) {
             introText = params.manualOverride.introduction;
             console.log(`Using manual override introduction: "${introText}"`);
         } else {
-            const fullBookName = bibleService.getBookName(book);
             introText = `${fullBookName}, Chapter ${chapter}.`;
             console.log(`Using default introduction: "${introText}"`);
         }
