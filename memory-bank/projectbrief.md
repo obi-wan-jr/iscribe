@@ -1,7 +1,7 @@
-# tScribe Project Brief
+# iScribe Project Brief
 
 ## Project Overview
-tScribe is a web application that automates the conversion of Bible chapters into high-quality audio using Fish.Audio's custom voice TTS API. The application fetches passages from local Bible data, processes the text to remove verse numbers, and creates seamless audio files for enhanced listening experience.
+iScribe is a web application that automates the conversion of Bible chapters into high-quality audio using Fish.Audio's custom voice TTS API. The application fetches passages from local Bible data, processes the text to remove verse numbers, and creates seamless audio files for enhanced listening experience.
 
 ## Core Objectives
 - **Automated Bible Audio Creation**: Convert any Bible chapter to audio without manual intervention

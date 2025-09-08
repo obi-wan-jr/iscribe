@@ -1,7 +1,7 @@
 {
-  "name": "tScribe",
+  "name": "iscribe",
   "version": "1.0.0",
-  "description": "Bible chapter audio transcription with Fish.Audio TTS and local Bible data integration",
+  "description": "iScribe - Bible chapter audio transcription with Fish.Audio TTS and local Bible data integration",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

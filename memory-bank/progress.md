@@ -98,7 +98,7 @@
 ## File Structure Status
 
 ```
-tScribe/                 ✅ Complete
+iScribe/                 ✅ Complete
 ├── server.js             ✅ Main Express server
 ├── package.json          ✅ Dependencies defined
 ├── README.md             ✅ Complete documentation
@@ -129,4 +129,4 @@ tScribe/                 ✅ Complete
 - ✅ Error handling and recovery
 - ✅ Raspberry Pi compatible architecture
 
-**The tScribe application is now complete and ready for deployment!** 🎉
+**The iScribe application is now complete and ready for deployment!** 🎉

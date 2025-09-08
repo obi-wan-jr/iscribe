@@ -1,6 +1,6 @@
-// Audibible Frontend JavaScript
+// iScribe Frontend JavaScript
 
-class AudibibleApp {
+class iScribeApp {
     constructor() {
         this.apiBase = '/api';
         this.uploadedImagePath = null;
@@ -129,7 +129,7 @@ class AudibibleApp {
                 <strong>✅ API Key loaded from environment file (.env)</strong><br>
                 <small>API Key: Configured | Voice Model: ${config.voiceModelId}</small><br>
                 <small>You can change the Voice Model ID using the form above if needed.</small>
-                <button onclick="audibibleApp.showConfigForm()" class="btn btn-secondary" style="margin-top: 10px; font-size: 0.85rem;">
+                <button onclick="iScribeApp.showConfigForm()" class="btn btn-secondary" style="margin-top: 10px; font-size: 0.85rem;">
                     ⚙️ Change Voice Model
                 </button>
             `;
@@ -180,7 +180,7 @@ class AudibibleApp {
         envStatusDiv.innerHTML = `
             <strong>ℹ️ Override Mode</strong><br>
             <small>Enter credentials below to override environment settings.</small>
-            <button onclick="audibibleApp.hideConfigForm()" class="btn btn-secondary" style="margin-top: 10px; font-size: 0.85rem;">
+            <button onclick="iScribeApp.hideConfigForm()" class="btn btn-secondary" style="margin-top: 10px; font-size: 0.85rem;">
                 ← Back to Environment Settings
             </button>
         `;
@@ -562,7 +562,7 @@ class AudibibleApp {
             </div>
             ${isQueued ? `
                 <div class="job-actions">
-                    <button class="btn btn-danger btn-small" onclick="audibibleApp.cancelJob('${job.id}')">
+                    <button class="btn btn-danger btn-small" onclick="iScribeApp.cancelJob('${job.id}')">
                         ❌ Cancel
                     </button>
                 </div>
@@ -959,10 +959,10 @@ class AudibibleApp {
                         `}
                     </div>
                     <div class="file-actions">
-                        <button class="btn btn-success" onclick="audibibleApp.downloadFile('/api/download/${file.filename}', '${file.filename}')">
+                        <button class="btn btn-success" onclick="iScribeApp.downloadFile('/api/download/${file.filename}', '${file.filename}')">
                             📥 Download
                         </button>
-                        <button class="btn btn-danger" onclick="audibibleApp.deleteFile('${file.filename}')">
+                        <button class="btn btn-danger" onclick="iScribeApp.deleteFile('${file.filename}')">
                             🗑️ Delete
                         </button>
                     </div>
@@ -1125,7 +1125,7 @@ class AudibibleApp {
         filesContainer.innerHTML = `
             <div class="empty-files">
                 <p>❌ ${message}</p>
-                <button class="btn btn-secondary" onclick="audibibleApp.loadFiles()">🔄 Try Again</button>
+                <button class="btn btn-secondary" onclick="iScribeApp.loadFiles()">🔄 Try Again</button>
             </div>
         `;
     }
@@ -1682,9 +1682,9 @@ class AudibibleApp {
 }
 
 // Initialize the application when DOM is loaded
-let audibibleApp;
+let iScribeApp;
 document.addEventListener('DOMContentLoaded', () => {
-    audibibleApp = new AudibibleApp();
+    iScribeApp = new iScribeApp();
 });
 
 // Service worker registration for potential offline functionality

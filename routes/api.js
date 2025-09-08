@@ -52,7 +52,7 @@ const upload = multer({
 router.get('/health', (req, res) => {
     res.json({
         status: 'ok',
-        message: 'Audibible API is running',
+        message: 'iScribe API is running',
         timestamp: new Date().toISOString(),
         services: {
             localBible: 'available',
