@@ -396,6 +396,232 @@ class VideoProcessingService {
     }
 
     /**
+     * Add synchronized text overlay to existing video
+     * @param {string} videoPath - Path to existing video file
+     * @param {string} text - Bible text to overlay
+     * @param {string} book - Bible book name
+     * @param {number} chapter - Chapter number
+     * @param {string} version - Bible version
+     * @param {Function} progressCallback - Progress callback function
+     * @returns {Promise<Object>} - {success: boolean, videoPath?: string, metadata?: Object, error?: string}
+     */
+    async addTextOverlayToVideo(videoPath, text, book, chapter, version, progressCallback = null) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                // Generate filename for final video with text overlay
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const filename = `${book}_${chapter}_${version}_VIDEO_WITH_TEXT_${timestamp}.mp4`;
+                const finalVideoPath = path.join(this.outputDir, filename);
+
+                console.log(`Adding text overlay to video: ${book} ${chapter} (${version})`);
+
+                // Ensure output directory exists
+                await fs.ensureDir(this.outputDir);
+
+                // Get video duration
+                const videoDuration = await this.getVideoDuration(videoPath);
+                
+                if (progressCallback) {
+                    progressCallback(10, 'Preparing text overlay...');
+                }
+
+                // Process text into synchronized segments
+                const textSegments = this.prepareTextSegments(text, videoDuration);
+                
+                if (progressCallback) {
+                    progressCallback(20, `Created ${textSegments.length} text segments`);
+                }
+
+                // Create FFmpeg command with text overlay
+                const command = ffmpeg()
+                    .input(videoPath)
+                    .videoCodec('libx264')
+                    .audioCodec('copy') // Keep original audio
+                    .outputOptions([
+                        '-pix_fmt', 'yuv420p',
+                        '-movflags', '+faststart'
+                    ])
+                    .output(finalVideoPath);
+
+                // Add text overlay filters
+                this.addTextOverlayFilters(command, textSegments);
+
+                // Set up progress tracking
+                command.on('start', (commandLine) => {
+                    console.log('FFmpeg text overlay command:', commandLine);
+                    if (progressCallback) {
+                        progressCallback(30, 'Starting text overlay generation...');
+                    }
+                });
+
+                command.on('progress', (progress) => {
+                    if (progressCallback && progress.percent) {
+                        const percent = Math.round(30 + (progress.percent * 0.6)); // 30-90%
+                        progressCallback(percent, `Adding text overlay: ${percent}%`);
+                    }
+                });
+
+                command.on('error', (err) => {
+                    console.error('Text overlay error:', err.message);
+                    resolve({
+                        success: false,
+                        error: `Text overlay failed: ${err.message}`
+                    });
+                });
+
+                command.on('end', async () => {
+                    console.log(`Text overlay completed: ${finalVideoPath}`);
+                    
+                    if (progressCallback) {
+                        progressCallback(95, 'Text overlay completed, getting metadata...');
+                    }
+
+                    // Get video metadata
+                    const metadata = await this.getVideoMetadata(finalVideoPath);
+
+                    if (progressCallback) {
+                        progressCallback(100, 'Text overlay video creation completed');
+                    }
+
+                    resolve({
+                        success: true,
+                        videoPath: finalVideoPath,
+                        filename: filename,
+                        metadata: {
+                            book,
+                            chapter,
+                            version,
+                            duration: metadata.duration,
+                            fileSize: metadata.fileSize,
+                            videoCodec: metadata.videoCodec,
+                            audioCodec: metadata.audioCodec,
+                            resolution: metadata.resolution,
+                            createdAt: new Date().toISOString(),
+                            type: 'video_with_text',
+                            textSegments: textSegments.length
+                        }
+                    });
+                });
+
+                // Start the text overlay process
+                command.run();
+
+            } catch (error) {
+                console.error('Text overlay setup error:', error);
+                resolve({
+                    success: false,
+                    error: error.message
+                });
+            }
+        });
+    }
+
+    /**
+     * Prepare text segments with timing for overlay
+     * @param {string} text - Full text to segment
+     * @param {number} videoDuration - Video duration in seconds
+     * @returns {Array<Object>} - Array of text segments with timing
+     */
+    prepareTextSegments(text, videoDuration) {
+        // Clean and prepare text
+        const cleanText = text.replace(/\s+/g, ' ').trim();
+        
+        // Split into sentences for better readability
+        const sentences = cleanText.split(/([.!?]+\s*)/).filter(s => s.trim().length > 0);
+        
+        // Group sentences into segments (2-3 sentences per segment for readability)
+        const segments = [];
+        let currentSegment = '';
+        let segmentCount = 0;
+        
+        for (let i = 0; i < sentences.length; i += 2) {
+            const sentence = sentences[i];
+            const punctuation = sentences[i + 1] || '.';
+            const fullSentence = sentence + punctuation;
+            
+            currentSegment += fullSentence + ' ';
+            
+            // Create segment every 2-3 sentences or at end
+            if (segmentCount % 3 === 2 || i >= sentences.length - 2) {
+                segments.push({
+                    text: currentSegment.trim(),
+                    index: segments.length
+                });
+                currentSegment = '';
+            }
+            segmentCount++;
+        }
+        
+        // Add remaining text if any
+        if (currentSegment.trim()) {
+            segments.push({
+                text: currentSegment.trim(),
+                index: segments.length
+            });
+        }
+        
+        // Calculate timing for each segment
+        const segmentDuration = videoDuration / segments.length;
+        
+        return segments.map((segment, index) => ({
+            ...segment,
+            startTime: index * segmentDuration,
+            endTime: (index + 1) * segmentDuration,
+            duration: segmentDuration
+        }));
+    }
+
+    /**
+     * Add text overlay filters to FFmpeg command
+     * @param {Object} command - FFmpeg command object
+     * @param {Array<Object>} textSegments - Text segments with timing
+     */
+    addTextOverlayFilters(command, textSegments) {
+        // Create complex filter for text overlays
+        const filters = [];
+        
+        textSegments.forEach((segment, index) => {
+            const filterName = `text${index}`;
+            
+            // Escape text for FFmpeg
+            const escapedText = segment.text
+                .replace(/\\/g, '\\\\')
+                .replace(/:/g, '\\:')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '\\"');
+            
+            // Add text overlay filter
+            filters.push(
+                `drawtext=fontfile=/System/Library/Fonts/Arial.ttf:fontsize=48:fontcolor=white:box=1:boxcolor=black@0.7:boxborderw=10:x=(w-text_w)/2:y=h-th-50:text='${escapedText}':enable='between(t,${segment.startTime},${segment.endTime})'`
+            );
+        });
+        
+        // Apply all filters
+        if (filters.length > 0) {
+            command.complexFilter(filters);
+        }
+    }
+
+    /**
+     * Get video duration in seconds
+     * @param {string} videoPath - Path to video file
+     * @returns {Promise<number>} - Duration in seconds
+     */
+    async getVideoDuration(videoPath) {
+        return new Promise((resolve, reject) => {
+            ffmpeg.ffprobe(videoPath, (err, metadata) => {
+                if (err) {
+                    console.error('Video duration probe error:', err);
+                    resolve(60); // Default to 60 seconds if probe fails
+                } else {
+                    const duration = metadata.format.duration || 60;
+                    resolve(Math.ceil(duration));
+                }
+            });
+        });
+    }
+
+    /**
      * Validate image file
      * @param {string} imagePath - Path to image file
      * @returns {Promise<Object>} - {valid: boolean, error?: string, format?: string}

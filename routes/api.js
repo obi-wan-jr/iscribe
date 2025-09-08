@@ -835,6 +835,70 @@ async function processTranscriptionInBackground(jobId, params, context = null) {
                 if (videoResult.success) {
                     console.log(`Video created: ${videoResult.filename}`);
                     
+                    // Stage 2: Add text overlay to the video
+                    sendContextualProgress(jobId, {
+                        type: 'progress',
+                        step: 'add_text_overlay',
+                        progress: 95,
+                        message: 'Adding synchronized text overlay...',
+                        details: 'Adding follow-along Bible text to video'
+                    });
+
+                    console.log('Adding text overlay to video...');
+                    
+                    // Get the Bible text for overlay
+                    let overlayText = bibleText;
+                    if (params.manualOverride && params.manualOverride.enabled && params.manualOverride.content) {
+                        overlayText = params.manualOverride.content;
+                    }
+                    
+                    // Add text overlay to the video
+                    const textOverlayResult = await videoService.addTextOverlayToVideo(
+                        videoResult.videoPath,
+                        overlayText,
+                        fullBookName,
+                        chapter,
+                        version,
+                        (progress, message) => {
+                            console.log(`Text overlay: ${progress}% - ${message}`);
+                            // Map text overlay progress to 95-98% range
+                            const adjustedProgress = 95 + (progress * 0.03);
+                            
+                            sendContextualProgress(jobId, {
+                                type: 'progress',
+                                step: 'add_text_overlay',
+                                progress: Math.round(adjustedProgress),
+                                message: message,
+                                details: `Adding synchronized text overlay`
+                            });
+                        }
+                    );
+
+                    if (textOverlayResult.success) {
+                        console.log(`Text overlay video created: ${textOverlayResult.filename}`);
+                        
+                        // Clean up the original video (without text overlay)
+                        try {
+                            await fs.remove(videoResult.videoPath);
+                            console.log(`Original video deleted: ${videoResult.filename} (replaced with text overlay version)`);
+                            
+                            // Update videoResult to point to the new video with text overlay
+                            videoResult = textOverlayResult;
+                        } catch (cleanupError) {
+                            console.warn('Failed to clean up original video:', cleanupError.message);
+                        }
+                    } else {
+                        console.error(`Text overlay failed: ${textOverlayResult.error}`);
+                        // Keep the original video if text overlay fails
+                        sendContextualProgress(jobId, {
+                            type: 'warning',
+                            step: 'add_text_overlay',
+                            progress: 95,
+                            message: 'Text overlay failed, keeping original video',
+                            details: textOverlayResult.error
+                        });
+                    }
+                    
                     // Clean up background image after video creation (only if not persistent)
                     try {
                         // Only clean up temporary uploads, not persistent images
@@ -883,7 +947,7 @@ async function processTranscriptionInBackground(jobId, params, context = null) {
         const response = {
             success: true,
             message: videoResult?.success 
-                ? 'Transcription and video creation completed successfully'
+                ? 'Transcription and video creation with text overlay completed successfully'
                 : 'Transcription completed successfully',
             filename: audioResult.filename,
             downloadUrl: `/api/download/${audioResult.filename}`,
