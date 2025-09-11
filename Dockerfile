@@ -14,11 +14,13 @@ RUN apk add --no-cache \
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package file only (avoid lockfile registry issues)
+COPY package.json ./
 
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install dependencies using registry and omit dev deps
+RUN npm config set registry https://registry.npmjs.org/ \
+    && npm install --omit=dev \
+    && npm cache clean --force
 
 # Stage 2: Production stage
 FROM node:18-alpine AS production
