@@ -12,15 +12,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3008
-      - AUDIO_OUTPUT_DIR=/app/output
-      - TEMP_AUDIO_DIR=/app/uploads
-      # Add your Fish.Audio credentials here or use .env file
-      - FISH_AUDIO_API_KEY=${FISH_AUDIO_API_KEY}
-      - FISH_AUDIO_VOICE_MODEL_ID=${FISH_AUDIO_VOICE_MODEL_ID}
+      - TSCRIBE_API_URL=http://host.docker.internal:3003
     volumes:
-      # Persist generated files
-      - ./output:/app/output
-      - ./uploads:/app/uploads
       - ./logs:/app/logs
     networks:
       - iscribe-network
@@ -30,15 +23,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    # Resource limits for Raspberry Pi
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
-          cpus: '0.5'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 networks:
   iscribe-network:

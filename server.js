@@ -2,10 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs-extra');
+const axios = require('axios');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3005;
+const PORT = process.env.PORT || 3008;
+const TSCRIBE_API_URL = process.env.TSCRIBE_API_URL || 'http://localhost:3003';
 
 // Middleware
 app.use(cors());
@@ -31,9 +34,38 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// API Routes
-const { router: apiRoutes } = require('./routes/api');
-app.use('/api', apiRoutes);
+// Health check aggregates backend availability
+app.get('/api/health', async (req, res) => {
+  try {
+    let tscribeStatus = 'unavailable';
+    try {
+      const r = await axios.get(new URL('/api/health', TSCRIBE_API_URL).toString(), { timeout: 5000 });
+      tscribeStatus = r.data?.status || 'available';
+    } catch (e) {}
+    res.json({
+      status: 'ok',
+      message: 'iScribe frontend is running',
+      timestamp: new Date().toISOString(),
+      services: { tscribe: tscribeStatus }
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Health check failed', error: error.message });
+  }
+});
+
+// Streaming-safe reverse proxy to tScribe backend
+app.use('/api', createProxyMiddleware({
+  target: TSCRIBE_API_URL,
+  changeOrigin: true,
+  ws: true,
+  secure: false,
+  logLevel: 'warn',
+  onError: (err, req, res) => {
+    if (!res.headersSent) {
+      res.status(502).json({ success: false, error: 'Bad gateway', message: 'Failed to reach tScribe backend' });
+    }
+  }
+}));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
