@@ -1,6 +1,6 @@
 # 🎵 iScribe
 
-> See also: [Docs: End-to-End Execution Plan](docs/EXECUTION_PLAN.md)
+> See also: [Docs: End-to-End Execution Plan](docs/EXECUTION_PLAN.md) • [Next Steps Runbook](docs/NEXT_STEPS.md)
 
 A web application that converts Bible chapters into high-quality audio using Fish.Audio's custom voice TTS API. Fetches passages from BibleGateway, processes text to remove verse numbers, and creates seamless audio files for enhanced listening experience.
 
