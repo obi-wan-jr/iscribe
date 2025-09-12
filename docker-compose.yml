@@ -5,59 +5,27 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: iscribe
+    container_name: iscribe-frontend
     restart: unless-stopped
     ports:
       - "3008:3008"
     environment:
       - NODE_ENV=production
       - PORT=3008
-      - AUDIO_OUTPUT_DIR=/app/output
-      - TEMP_AUDIO_DIR=/app/uploads
-      # Add your Fish.Audio credentials here or use .env file
-      - FISH_AUDIO_API_KEY=${FISH_AUDIO_API_KEY}
-      - FISH_AUDIO_VOICE_MODEL_ID=${FISH_AUDIO_VOICE_MODEL_ID}
-    volumes:
-      # Persist generated files
-      - ./output:/app/output
-      - ./uploads:/app/uploads
-      - ./logs:/app/logs
-    networks:
-      - iscribe-network
+      - TSCRIBE_API_URL=http://host.docker.internal:3003
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3008/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
-    # Resource limits for Raspberry Pi
+      start_period: 5s
     deploy:
       resources:
         limits:
-          memory: 1G
-          cpus: '1.0'
+          memory: 256M
         reservations:
-          memory: 512M
-          cpus: '0.5'
-
-networks:
-  iscribe-network:
-    driver: bridge
-
-# Optional: Add a reverse proxy for production use
-# Uncomment the following if you want to use nginx as reverse proxy
-# services:
-#   nginx:
-#     image: nginx:alpine
-#     container_name: iscribe-nginx
-#     restart: unless-stopped
-#     ports:
-#       - "80:80"
-#       - "443:443"
-#     volumes:
-#       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-#       - ./ssl:/etc/nginx/ssl:ro
-#     depends_on:
-#       - iscribe
-#     networks:
-#       - iscribe-network
+          memory: 128M

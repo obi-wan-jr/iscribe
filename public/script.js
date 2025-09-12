@@ -196,11 +196,7 @@ class iScribeApp {
         const videoSection = document.querySelector('.video-section');
         
         if (!config.videoProcessingAvailable) {
-            // Disable video section and show warning
-            videoSection.style.opacity = '0.6';
-            videoSection.style.pointerEvents = 'none';
-            
-            // Add warning message
+            // Keep controls enabled but show a clear warning; backend may reject until Sharp is installed
             let warningDiv = videoSection.querySelector('.video-warning');
             if (!warningDiv) {
                 warningDiv = document.createElement('div');
@@ -214,16 +210,15 @@ class iScribeApp {
                     color: #856404;
                 `;
                 warningDiv.innerHTML = `
-                    <strong>⚠️ Video Processing Unavailable</strong><br>
-                    <small>Sharp image library not installed. Audio transcription works normally.<br>
-                    To enable video features, run: <code>npm install sharp --build-from-source</code></small>
+                    <strong>⚠️ Video processing not available on the server</strong><br>
+                    <small>You can select a background now; actual video creation will work once Sharp is installed on the backend.<br>
+                    Admin note: <code>npm install sharp --build-from-source</code> on the backend host.</small>
                 `;
                 videoSection.insertBefore(warningDiv, videoSection.firstElementChild.nextSibling);
             }
-            
-            // Uncheck video creation option
-            document.getElementById('createVideo').checked = false;
-            document.getElementById('createVideo').disabled = true;
+            // Ensure the checkbox remains enabled so users can reveal the upload UI
+            const createVideo = document.getElementById('createVideo');
+            if (createVideo) createVideo.disabled = false;
         } else {
             // Enable video section
             videoSection.style.opacity = '1';
@@ -1406,14 +1401,8 @@ class iScribeApp {
 
         try {
 
-            // Determine the correct API hostname based on current location
-            const currentHost = window.location.hostname;
-            const bibleApiHost = currentHost === 'localhost' || currentHost === '127.0.0.1' ? 'localhost' : 'meatpi';
-            
-            console.log(`Current host: ${currentHost}, using Bible API host: ${bibleApiHost}`);
-
-            // Fetch the chapter text from the API
-            const response = await fetch(`http://${bibleApiHost}:3005/api/books/${book}/chapters/${chapter}`);
+            // Fetch the chapter text through the proxy
+            const response = await fetch(`${this.apiBase}/books/${encodeURIComponent(book)}/chapters/${encodeURIComponent(chapter)}`);
             
             if (response.ok) {
                 const data = await response.json();

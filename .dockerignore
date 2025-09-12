@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Dependencies
 node_modules
 npm-debug.log*
@@ -87,3 +88,22 @@ temp/
 # Generated files (will be mounted as volumes)
 output/
 uploads/
+=======
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.nyc_output
+coverage
+.nyc_output
+.coverage
+logs
+output
+uploads
+*.log
+.DS_Store
+Thumbs.db
+
+>>>>>>> 8ba1550 (feat(proxy): use http-proxy-middleware; chore: docker host-gateway; docs: README networking; chore: deploy.sh compose detection)

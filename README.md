@@ -1,6 +1,8 @@
 # 🎵 iScribe
 
-A web application that converts Bible chapters into high-quality audio using Fish.Audio's custom voice TTS API. Fetches passages from local Bible data, processes text to remove verse numbers, and creates seamless audio files for enhanced listening experience.
+> See also: [Docs: End-to-End Execution Plan](docs/EXECUTION_PLAN.md)
+
+A web application that converts Bible chapters into high-quality audio using Fish.Audio's custom voice TTS API. Fetches passages from BibleGateway, processes text to remove verse numbers, and creates seamless audio files for enhanced listening experience.
 
 ## Features
 
@@ -197,3 +199,38 @@ For issues or questions:
 ---
 
 **Built for creating seamless Bible audio with Fish.Audio TTS** 🎵📖
+
+## Deployment and Networking Notes
+
+### Reverse Proxy Behavior
+- The frontend now uses `http-proxy-middleware` to reverse proxy all requests under `/api/*` directly to tScribe. This preserves streaming (SSE), file downloads, and uploads without buffering or JSON re-serialization.
+
+### Environment Variables
+- `PORT`: Frontend port (default `3008`).
+- `TSCRIBE_API_URL`: Base URL for the tScribe backend (default `http://localhost:3003`).
+
+### Docker on Linux (Raspberry Pi/meatpi)
+- Linux Docker does not resolve `host.docker.internal` by default. The included `docker-compose.yml` sets:
+  - `extra_hosts: ["host.docker.internal:host-gateway"]`
+  - `TSCRIBE_API_URL=http://host.docker.internal:3003`
+- Alternatively, you can point to the bridge IP `172.17.0.1` if preferred:
+  - `TSCRIBE_API_URL=http://172.17.0.1:3003`
+
+### Running Locally (without Docker)
+```bash
+npm install
+PORT=3008 TSCRIBE_API_URL=http://localhost:3003 npm start
+```
+Then open `http://localhost:3008`. Ensure tScribe is running and reachable at `TSCRIBE_API_URL`.
+
+### Health Check
+- Frontend: `GET /api/health` returns `{ status: 'ok', services: { tscribe: 'available|unavailable' } }`.
+- If `tscribe` is `unavailable`, verify `TSCRIBE_API_URL` and that tScribe is up on port `3003`.
+
+### Validating Streaming Endpoints
+- Files list: `GET /api/files`
+- Download: `GET /api/download/:filename`
+- Delete: `DELETE /api/files/:filename`
+- Progress (SSE): `GET /api/progress/:jobId`
+
+These now stream correctly via the proxy without truncation.
